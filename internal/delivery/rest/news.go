@@ -72,7 +72,7 @@ func (cr news) GetAll(c *gin.Context){
 
 	// Print the details of each item
 	for i, item := range response.Data {
-		response.Data[i].UrlToWeb=fmt.Sprintf("https://gov.uz/news/view/%d/\n",item.ID)
+		response.Data[i].UrlToWeb=fmt.Sprintf("https://gov.uz/news/view/%d/",item.ID)
 	}
 	
 	c.JSON(200,response)
