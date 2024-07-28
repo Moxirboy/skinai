@@ -60,34 +60,17 @@ const docTemplate = `{
         },
         "/get_premium": {
             "get": {
-                "description": "signup user with the input email,password",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "get premium user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "users"
                 ],
-                "summary": "Signup user",
-                "parameters": [
-                    {
-                        "description": "User",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.User"
-                        }
-                    }
-                ],
+                "summary": "get premium",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.User"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -131,6 +114,9 @@ const docTemplate = `{
                 "description": "Get all news with pagination",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "news"
                 ],
                 "summary": "Get all news",
                 "operationId": "get-all-news",

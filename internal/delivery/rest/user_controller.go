@@ -184,13 +184,11 @@ func (cr controller) DeleteAccount(c *gin.Context) {
 }
 
 // CreateUserHandler godoc
-// @Summary Signup user
-// @Description signup user with the input email,password
+// @Summary get premium
+// @Description get premium user 
 // @Tags users
-// @Accept  json
 // @Produce  json
-// @Param user body dto.User true "User"
-// @Success 200 {object} dto.User
+// @Success 200 
 // @Router /get_premium [get]
 func (cr controller) GetPremium(c *gin.Context) {
 	s:=sessions.Default(c)

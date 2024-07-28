@@ -32,6 +32,7 @@ func NewNewsController(g *gin.RouterGroup,bot Bot.Bot,	uc usecase.INewsUseCase){
 // @Summary Get all news
 // @Description Get all news with pagination
 // @ID get-all-news
+// @tags news
 // @Produce json
 // @Param page query int true "Page number"
 // @Success 200 {object} dto.Response

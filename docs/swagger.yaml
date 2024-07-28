@@ -96,24 +96,13 @@ paths:
       - users
   /get_premium:
     get:
-      consumes:
-      - application/json
-      description: signup user with the input email,password
-      parameters:
-      - description: User
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.User'
+      description: get premium user
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/dto.User'
-      summary: Signup user
+      summary: get premium
       tags:
       - users
   /login:
@@ -156,6 +145,8 @@ paths:
           schema:
             $ref: '#/definitions/dto.Response'
       summary: Get all news
+      tags:
+      - news
   /signup:
     post:
       consumes:
