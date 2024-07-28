@@ -1,0 +1,107 @@
+basePath: /api/v1
+definitions:
+  dto.User:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dto.UserInfo:
+    properties:
+      firstname:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      lastname:
+        type: string
+      skin_color:
+        type: integer
+      skin_type:
+        type: integer
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a  server skin ai server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Skin Ai Swagger
+  version: "1.0"
+paths:
+  /dashboard/fillUserInfo:
+    post:
+      consumes:
+      - application/json
+      description: User Info with the input attributes
+      parameters:
+      - description: User Info
+        in: body
+        name: user_info
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserInfo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserInfo'
+      summary: User info
+      tags:
+      - users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login user with the input username,password
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.User'
+      summary: Login user
+      tags:
+      - users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: signup user with the input email,password
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.User'
+      summary: Signup user
+      tags:
+      - users
+swagger: "2.0"
