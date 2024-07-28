@@ -189,7 +189,7 @@ func (cr controller) DeleteAccount(c *gin.Context) {
 // @Tags users
 // @Produce  json
 // @Success 200 
-// @Router /get_premium [get]
+// @Router dashboard/middle/get_premium [get]
 func (cr controller) GetPremium(c *gin.Context) {
 	s:=sessions.Default(c)
 	id:=s.Get("userId").(int)
