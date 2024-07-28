@@ -24,7 +24,7 @@ definitions:
       skin_type:
         type: integer
     type: object
-host: localhost:3000
+host: skinai.up.railway.app
 info:
   contact:
     email: support@swagger.io
