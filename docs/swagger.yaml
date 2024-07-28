@@ -123,7 +123,7 @@ paths:
       parameters:
       - description: Page number
         in: query
-        name: utils.PaginationQuery
+        name: page
         required: true
         type: integer
       produces:

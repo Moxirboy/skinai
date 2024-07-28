@@ -104,7 +104,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Page number",
-                        "name": "utils.PaginationQuery",
+                        "name": "page",
                         "in": "query",
                         "required": true
                     }

@@ -30,12 +30,12 @@ func NewNewsController(g *gin.RouterGroup,bot Bot.Bot,	uc usecase.INewsUseCase){
 
 // CreateUserHandler godoc
 // @Summary Get all news
-    // @Description Get all news with pagination
-    // @ID get-all-news
-    // @Produce json
-    // @Param utils.PaginationQuery query int true "Page number"
-    // @Success 200 {object} dto.Response
-    // @Router /news/getall [get]
+// @Description Get all news with pagination
+// @ID get-all-news
+// @Produce json
+// @Param page query int true "Page number"
+// @Success 200 {object} dto.Response
+// @Router /news/getall [get]
 func (cr news) GetAll(c *gin.Context){
 	pq,err:=utils.GetPaginationFromCtx(c)
 	if err!=nil{
