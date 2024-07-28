@@ -41,6 +41,7 @@ func NewController(g *gin.RouterGroup,usecase usecase.Usecase, bot Bot.Bot,reque
 			{
 				middle.POST("/send-request",controller.SendMessage)
 				middle.GET("/get_premium",controller.GetPremium)
+				middle.GET("/buy_premium",controller.BuyPremium)
 				middle.GET("/get-all-messages",controller.GetAllMessages)
 				middle.POST("/updateuserinfo", controller.UpdateUserInfo)
 				middle.GET("/showUserInfo", controller.ShowUserInfo)

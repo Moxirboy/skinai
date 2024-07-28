@@ -107,3 +107,15 @@ func (r repo) IsPremium(userId interface{}) (int,error){
 	}
 	return isPremium,nil
 }
+
+func (r repo) UpdatePremium(userId interface{}) (error){
+	query:=`
+	update users set isPremium=$1 where id=$2
+	`
+	_,err:=r.db.Exec(query,true,userId)
+	if err != nil {
+		r.Bot.SendErrorNotification(err)
+		return err
+	}
+	return nil
+}

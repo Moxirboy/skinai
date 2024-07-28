@@ -189,7 +189,7 @@ func (cr controller) DeleteAccount(c *gin.Context) {
 // @Tags users
 // @Produce  json
 // @Success 200 
-// @Router dashboard/middle/get_premium [get]
+// @Router /dashboard/middle/get_premium [get]
 func (cr controller) GetPremium(c *gin.Context) {
 	s:=sessions.Default(c)
 	id:=s.Get("userId").(int)
@@ -202,5 +202,26 @@ func (cr controller) GetPremium(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"premium": isPremium,
+	})
+}
+// CreateUserHandler godoc
+// @Summary buy premium
+// @Description buy premium user 
+// @Tags users
+// @Produce  json
+// @Success 200 
+// @Router /dashboard/middle/buy_premium [get]
+func (cr controller) BuyPremium(c *gin.Context){
+	s:=sessions.Default(c)
+	id:=s.Get("userId").(int)
+	err:=cr.usecase.UpdatePremium(id)
+	if err!=nil{
+		c.JSON(
+			http.StatusBadRequest,err.Error(),
+		)
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "success",
 	})
 }

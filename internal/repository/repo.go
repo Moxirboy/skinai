@@ -50,6 +50,7 @@ type Repo interface {
 	GetDrugByType(ctx context.Context,tip string)(drugs []domain.DrugWithoutType,err error)
 	GetAllTypes(ctx context.Context)(Types []domain.DrugByType,err error)
 	IsPremium(userId interface{}) (int,error)
+	UpdatePremium(userId interface{}) (error)
 }
 
 func NewRepo(db *sql.DB, bot Bot.Bot) Repo {

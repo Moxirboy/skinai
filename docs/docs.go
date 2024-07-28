@@ -58,7 +58,24 @@ const docTemplate = `{
                 }
             }
         },
-        "/get_premium": {
+        "/dashboard/middle/buy_premium": {
+            "get": {
+                "description": "buy premium user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "buy premium",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/dashboard/middle/get_premium": {
             "get": {
                 "description": "get premium user",
                 "produces": [

@@ -94,7 +94,18 @@ paths:
       summary: User info
       tags:
       - users
-  /get_premium:
+  /dashboard/middle/buy_premium:
+    get:
+      description: buy premium user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: buy premium
+      tags:
+      - users
+  /dashboard/middle/get_premium:
     get:
       description: get premium user
       produces:
