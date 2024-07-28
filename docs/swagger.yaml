@@ -1,5 +1,39 @@
 basePath: /api/v1
 definitions:
+  dto.Item:
+    properties:
+      activity_code:
+        type: string
+      activity_title:
+        type: string
+      anons:
+        type: string
+      anons_image:
+        type: string
+      category_code:
+        type: string
+      category_id:
+        type: integer
+      category_title:
+        type: string
+      date:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      url_to_web:
+        type: string
+      views:
+        type: integer
+    type: object
+  dto.Response:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Item'
+        type: array
+    type: object
   dto.User:
     properties:
       email:
@@ -24,7 +58,7 @@ definitions:
       skin_type:
         type: integer
     type: object
-host: skinai.up.railway.app
+host: web.binaryhood.uz
 info:
   contact:
     email: support@swagger.io
@@ -82,6 +116,24 @@ paths:
       summary: Login user
       tags:
       - users
+  /news/getall:
+    get:
+      description: Get all news with pagination
+      operationId: get-all-news
+      parameters:
+      - description: Page number
+        in: query
+        name: utils.PaginationQuery
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: Get all news
   /signup:
     post:
       consumes:

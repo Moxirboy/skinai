@@ -92,6 +92,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/news/getall": {
+            "get": {
+                "description": "Get all news with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all news",
+                "operationId": "get-all-news",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "utils.PaginationQuery",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/signup": {
             "post": {
                 "description": "signup user with the input email,password",
@@ -128,6 +155,58 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.Item": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "activity_title": {
+                    "type": "string"
+                },
+                "anons": {
+                    "type": "string"
+                },
+                "anons_image": {
+                    "type": "string"
+                },
+                "category_code": {
+                    "type": "string"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "category_title": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url_to_web": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Item"
+                    }
+                }
+            }
+        },
         "dto.User": {
             "type": "object",
             "properties": {
@@ -171,7 +250,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "skinai.up.railway.app",
+	Host:             "web.binaryhood.uz",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Skin Ai Swagger",

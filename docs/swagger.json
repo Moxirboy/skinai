@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "skinai.up.railway.app",
+    "host": "web.binaryhood.uz",
     "basePath": "/api/v1",
     "paths": {
         "/dashboard/fillUserInfo": {
@@ -86,6 +86,33 @@
                 }
             }
         },
+        "/news/getall": {
+            "get": {
+                "description": "Get all news with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all news",
+                "operationId": "get-all-news",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "utils.PaginationQuery",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/signup": {
             "post": {
                 "description": "signup user with the input email,password",
@@ -122,6 +149,58 @@
         }
     },
     "definitions": {
+        "dto.Item": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "activity_title": {
+                    "type": "string"
+                },
+                "anons": {
+                    "type": "string"
+                },
+                "anons_image": {
+                    "type": "string"
+                },
+                "category_code": {
+                    "type": "string"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "category_title": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url_to_web": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Item"
+                    }
+                }
+            }
+        },
         "dto.User": {
             "type": "object",
             "properties": {
