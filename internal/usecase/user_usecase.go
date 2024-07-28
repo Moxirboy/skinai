@@ -69,3 +69,7 @@ func (u usecase) DeleteUser(id int) (err error) {
 	}
 	return nil
 }
+
+func (u usecase) IsPremium(userId interface{}) (int,error){
+	return u.repo.IsPremium(userId)
+}

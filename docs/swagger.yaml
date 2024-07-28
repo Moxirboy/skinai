@@ -94,6 +94,28 @@ paths:
       summary: User info
       tags:
       - users
+  /get_premium:
+    get:
+      consumes:
+      - application/json
+      description: signup user with the input email,password
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+      summary: Signup user
+      tags:
+      - users
   /login:
     post:
       consumes:
@@ -109,8 +131,8 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/dto.User'
       summary: Login user

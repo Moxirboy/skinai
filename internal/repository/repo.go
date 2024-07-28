@@ -49,6 +49,7 @@ type Repo interface {
 	UpdatePhoto(path string) (id int,err error)
 	GetDrugByType(ctx context.Context,tip string)(drugs []domain.DrugWithoutType,err error)
 	GetAllTypes(ctx context.Context)(Types []domain.DrugByType,err error)
+	IsPremium(userId interface{}) (int,error)
 }
 
 func NewRepo(db *sql.DB, bot Bot.Bot) Repo {

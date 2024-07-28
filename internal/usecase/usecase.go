@@ -34,6 +34,7 @@ type Usecase interface {
 	GetAllMessages(userId int )(messages []domain.Message,err error)
 	GetDrugByType(ctx context.Context,tip string)(drugs []domain.DrugWithoutType,err error)
 	GetAllTypes(ctx context.Context)(Types []domain.DrugByType,err error)
+	IsPremium(userId interface{}) (int,error)
 }
 type INewsUseCase interface{
 	GetAll(ctx context.Context,query utils.PaginationQuery)(news *domain.NewsList,err error)

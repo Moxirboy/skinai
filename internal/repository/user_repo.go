@@ -96,8 +96,8 @@ func (r repo) UpdateVerified(userId interface{}) (err error) {
 	return nil
 }
 
-func (r repo) IsPremium(userId interface{}) (bool,error){
-	var isPremium bool
+func (r repo) IsPremium(userId interface{}) (int,error){
+	var isPremium int
 	query:=`
 	select isPremium from users where id=$1
 	`

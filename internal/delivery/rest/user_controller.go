@@ -88,7 +88,7 @@ func (c controller) SignUp(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param user body dto.User true "User"
-// @Success 201 {object} dto.User
+// @Success 200 {object} dto.User
 // @Router /login [post]
 func (c controller) Login(ctx *gin.Context) {
 	s := sessions.Default(ctx)
@@ -181,4 +181,28 @@ func (cr controller) DeleteAccount(c *gin.Context) {
 	s.Save()
 	c.Redirect(http.StatusAccepted, "v1/dashboard")
 
+}
+
+// CreateUserHandler godoc
+// @Summary Signup user
+// @Description signup user with the input email,password
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body dto.User true "User"
+// @Success 200 {object} dto.User
+// @Router /get_premium [get]
+func (cr controller) GetPremium(c *gin.Context) {
+	s:=sessions.Default(c)
+	id:=s.Get("userId").(int)
+	isPremium,err:=cr.usecase.IsPremium(id)
+	if err!=nil{
+		c.JSON(
+			http.StatusBadRequest,err.Error(),
+		)
+		return
+	}
+	c.JSON(200, gin.H{
+		"premium": isPremium,
+	})
 }
