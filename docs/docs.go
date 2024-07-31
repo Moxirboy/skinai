@@ -117,23 +117,26 @@ const docTemplate = `{
         },
         "/fact/create": {
             "post": {
-                "description": "create fact",
+                "description": "Creates a new fact question and returns the created fact questions.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "fact"
                 ],
-                "summary": "create fact",
-                "operationId": "create-fact",
+                "summary": "Create a fact question",
+                "operationId": "create-fact-question",
                 "parameters": [
                     {
-                        "description": "Fact",
-                        "name": "user",
+                        "description": "List of fact questions to be created",
+                        "name": "fact",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.Fact"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
                         }
                     }
                 ],
@@ -141,7 +144,10 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.Fact"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
                         }
                     }
                 }
@@ -247,6 +253,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.Choices": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "is_true": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.Fact": {
             "type": "object",
             "properties": {
@@ -260,6 +277,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FactQuestions": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Choices"
+                    }
+                },
+                "fact_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "question": {
                     "type": "string"
                 }
             }

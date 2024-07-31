@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  dto.Choices:
+    properties:
+      content:
+        type: string
+      is_true:
+        type: boolean
+    type: object
   dto.Fact:
     properties:
       content:
@@ -9,6 +16,19 @@ definitions:
       number_of_question:
         type: integer
       title:
+        type: string
+    type: object
+  dto.FactQuestions:
+    properties:
+      choices:
+        items:
+          $ref: '#/definitions/dto.Choices'
+        type: array
+      fact_id:
+        type: integer
+      id:
+        type: integer
+      question:
         type: string
     type: object
   dto.Item:
@@ -144,23 +164,27 @@ paths:
       - users
   /fact/create:
     post:
-      description: create fact
-      operationId: create-fact
+      description: Creates a new fact question and returns the created fact questions.
+      operationId: create-fact-question
       parameters:
-      - description: Fact
+      - description: List of fact questions to be created
         in: body
-        name: user
+        name: fact
         required: true
         schema:
-          $ref: '#/definitions/dto.Fact'
+          items:
+            $ref: '#/definitions/dto.FactQuestions'
+          type: array
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.Fact'
-      summary: create fact
+            items:
+              $ref: '#/definitions/dto.FactQuestions'
+            type: array
+      summary: Create a fact question
       tags:
       - fact
   /login:
