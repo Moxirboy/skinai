@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/repository"
 	"testDeployment/pkg/Bot"
@@ -71,6 +72,7 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (*dto.
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(question)
 	choices, err := u.repo.GetChoices(
 		ctx,
 		question.ID,
@@ -78,6 +80,7 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (*dto.
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(choices)
 	question.Choices = choices
 	return question, nil
 }

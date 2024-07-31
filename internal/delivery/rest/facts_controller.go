@@ -22,7 +22,7 @@ func NewFactsController(
 	router := r.Group("/fact")
 	router.POST("/create", handler.NewFact)
 	router.POST("/createQuestions", handler.CreateQuestions)
-	router.GET("/getFacts", handler.GetFact)
+	router.GET("/getFact", handler.GetFact)
 	router.GET("/GetQuestion", handler.GetQuestion)
 }
 
@@ -139,6 +139,7 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 	) // Respond with the extracted parameters
 	if facts == nil {
 		ctx.JSON(http.StatusOK, gin.H{"message": "question are over"})
+		return
 	}
 	ctx.JSON(http.StatusOK, facts)
 }
