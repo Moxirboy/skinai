@@ -117,6 +117,38 @@ const docTemplate = `{
         },
         "/fact/create": {
             "post": {
+                "description": "create fact",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "create fact",
+                "operationId": "create-fact",
+                "parameters": [
+                    {
+                        "description": "Fact",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Fact"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Fact"
+                        }
+                    }
+                }
+            }
+        },
+        "/fact/createQuestions": {
+            "post": {
                 "description": "Creates a new fact question and returns the created fact questions.",
                 "produces": [
                     "application/json"

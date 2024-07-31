@@ -60,7 +60,7 @@ func (c facts) NewFact(ctx *gin.Context) {
 // @Produce json
 // @Param fact body []dto.FactQuestions true "List of fact questions to be created"
 // @Success 201 {array} dto.FactQuestions
-// @Router /fact/create [post]
+// @Router /fact/createQuestions [post]
 func (c facts) CreateQuestions(ctx *gin.Context) {
 	s := sessions.Default(ctx)
 	questions := []dto.FactQuestions{}

@@ -164,6 +164,27 @@ paths:
       - users
   /fact/create:
     post:
+      description: create fact
+      operationId: create-fact
+      parameters:
+      - description: Fact
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Fact'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Fact'
+      summary: create fact
+      tags:
+      - fact
+  /fact/createQuestions:
+    post:
       description: Creates a new fact question and returns the created fact questions.
       operationId: create-fact-question
       parameters:
