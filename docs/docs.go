@@ -115,6 +115,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/fact/GetQuestion": {
+            "get": {
+                "description": "Retrieve the ID and offset from the query parameters.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Get ID and Offset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "\"default_id\"",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"0\"",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FactQuestions"
+                        }
+                    }
+                }
+            }
+        },
         "/fact/create": {
             "post": {
                 "description": "create fact",

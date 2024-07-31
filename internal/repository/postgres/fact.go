@@ -84,3 +84,16 @@ func (r fact) GetFacts(ctx context.Context) ([]dto.Fact, error) {
 	row.Close()
 	return facts, nil
 }
+
+func (r fact) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQuestions, error) {
+	var question dto.FactQuestions
+	err := r.db.QueryRowContext(ctx, GetQuestion, id, offset).Scan(
+		&question.ID,
+		&question.Question,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &question, nil
+}

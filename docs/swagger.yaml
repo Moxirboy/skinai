@@ -162,6 +162,32 @@ paths:
       summary: User info
       tags:
       - users
+  /fact/GetQuestion:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the ID and offset from the query parameters.
+      parameters:
+      - default: '"default_id"'
+        description: ID
+        in: query
+        name: id
+        type: string
+      - default: '"0"'
+        description: Offset
+        in: query
+        name: offset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FactQuestions'
+      summary: Get ID and Offset
+      tags:
+      - example
   /fact/create:
     post:
       description: create fact

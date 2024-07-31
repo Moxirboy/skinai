@@ -62,3 +62,10 @@ func (u factUseCase) GetFacts(
 	return u.repo.GetFacts(
 		ctx)
 }
+func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQuestions, error) {
+	return u.repo.GetQuestion(
+		ctx,
+		id,
+		offset,
+	)
+}

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/usecase"
 )
@@ -21,6 +22,7 @@ func NewFactsController(
 	router.POST("/create", handler.NewFact)
 	router.POST("/createQuestions", handler.CreateQuestions)
 	router.GET("/getFacts", handler.GetFact)
+	router.GET("/GetQuestion", handler.GetQuestion)
 }
 
 // CreateFactHandler godoc
@@ -100,5 +102,37 @@ func (c facts) GetFact(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
+	ctx.JSON(http.StatusOK, facts)
+}
+
+// @Summary Get ID and Offset
+// @Description Retrieve the ID and offset from the query parameters.
+// @Tags example
+// @Accept  json
+// @Produce  json
+// @Param id query string false "ID" default("default_id")
+// @Param offset query string false "Offset" default("0")
+// @Success 200 {object} dto.FactQuestions
+// @Router /fact/GetQuestion [get]
+func (c facts) GetQuestion(ctx *gin.Context) {
+	// Retrieve the 'id' and 'offset' query parameters
+	idStr := ctx.Query("id")
+	offsetStr := ctx.Query("offset")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		id = 0 // Default value if conversion fails
+	}
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		offset = 0 // Default value if conversion fails
+	}
+
+	facts, err := c.usecase.GetQuestion(
+		ctx.Request.Context(),
+		id,
+		offset,
+	) // Respond with the extracted parameters
 	ctx.JSON(http.StatusOK, facts)
 }
