@@ -86,7 +86,7 @@ func (r fact) GetFacts(ctx context.Context) ([]dto.Fact, error) {
 	return facts, nil
 }
 
-func (r fact) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQuestions, error) {
+func (r fact) GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error) {
 	var question dto.FactQuestions
 	fmt.Println(id)
 	err := r.db.QueryRowContext(ctx, GetQuestion, id, offset).Scan(
@@ -98,7 +98,7 @@ func (r fact) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQue
 	}
 	fmt.Println(question)
 
-	return &question, nil
+	return question, nil
 }
 
 func (r fact) GetChoices(ctx context.Context, id int) ([]dto.Choices, error) {

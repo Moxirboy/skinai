@@ -23,6 +23,6 @@ type IFactRepository interface {
 	GetFacts(
 		ctx context.Context,
 	) ([]dto.Fact, error)
-	GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQuestions, error)
+	GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error)
 	GetChoices(ctx context.Context, id int) ([]dto.Choices, error)
 }
