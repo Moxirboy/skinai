@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -107,7 +108,7 @@ func (c facts) GetFact(ctx *gin.Context) {
 
 // @Summary Get ID and Offset
 // @Description Retrieve the ID and offset from the query parameters.
-// @Tags example
+// @Tags fact
 // @Accept  json
 // @Produce  json
 // @Param id query string false "ID" default("default_id")
@@ -123,8 +124,10 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 	if err != nil {
 		id = 0 // Default value if conversion fails
 	}
+	fmt.Println(id)
 
 	offset, err := strconv.Atoi(offsetStr)
+	fmt.Println(offset)
 	if err != nil {
 		offset = 0 // Default value if conversion fails
 	}
@@ -134,5 +137,8 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 		id,
 		offset,
 	) // Respond with the extracted parameters
+	if facts == nil {
+		ctx.JSON(http.StatusOK, gin.H{"message": "question are over"})
+	}
 	ctx.JSON(http.StatusOK, facts)
 }

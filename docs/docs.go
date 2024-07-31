@@ -125,7 +125,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "example"
+                    "fact"
                 ],
                 "summary": "Get ID and Offset",
                 "parameters": [

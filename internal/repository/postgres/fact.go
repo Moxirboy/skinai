@@ -97,3 +97,27 @@ func (r fact) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQue
 
 	return &question, nil
 }
+
+func (r fact) GetChoices(ctx context.Context, id int) ([]dto.Choices, error) {
+	rows, err := r.db.QueryContext(ctx, GetChoices, id)
+	if err != nil {
+		return nil, err
+
+	}
+	defer rows.Close()
+	var choices []dto.Choices
+	for rows.Next() {
+		var choice dto.Choices
+		err := rows.Scan(
+			&choice.Content,
+			&choice.IsTrue,
+		)
+		if err != nil {
+			rows.Close()
+			return nil, err
+		}
+		choices = append(choices, choice)
+	}
+	rows.Close()
+	return choices, nil
+}

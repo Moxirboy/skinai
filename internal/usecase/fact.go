@@ -63,9 +63,21 @@ func (u factUseCase) GetFacts(
 		ctx)
 }
 func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (*dto.FactQuestions, error) {
-	return u.repo.GetQuestion(
+	question, err := u.repo.GetQuestion(
 		ctx,
 		id,
 		offset,
 	)
+	if err != nil {
+		return nil, err
+	}
+	choices, err := u.repo.GetChoices(
+		ctx,
+		question.ID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	question.Choices = choices
+	return question, nil
 }
