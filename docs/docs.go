@@ -285,6 +285,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/fact/send-request": {
+            "post": {
+                "description": "Creates a new fact question and returns the created fact questions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "Create a fact question",
+                "operationId": "message",
+                "parameters": [
+                    {
+                        "description": "List of fact questions to be created",
+                        "name": "fact",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.NewMessage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.NewMessage"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login user with the input username,password",
@@ -385,6 +420,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.NewMessage": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Choices": {
             "type": "object",
             "properties": {

@@ -1,5 +1,10 @@
 basePath: /api/v1
 definitions:
+  domain.NewMessage:
+    properties:
+      message:
+        type: string
+    type: object
   dto.Choices:
     properties:
       content:
@@ -274,6 +279,29 @@ paths:
       summary: Get a fact
       tags:
       - fact
+  /fact/send-request:
+    post:
+      description: Creates a new fact question and returns the created fact questions.
+      operationId: message
+      parameters:
+      - description: List of fact questions to be created
+        in: body
+        name: fact
+        required: true
+        schema:
+          $ref: '#/definitions/domain.NewMessage'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/domain.NewMessage'
+            type: array
+      summary: Create a fact question
+      tags:
+      - message
   /login:
     post:
       consumes:
