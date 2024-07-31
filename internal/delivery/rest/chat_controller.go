@@ -26,7 +26,9 @@ import (
 func (c controller) SendMessage(ctx *gin.Context) {
 	var err error
 	var NewMessage domain.NewMessage
-	ctx.ShouldBindJSON(&NewMessage)
+	if err := ctx.ShouldBindJSON(&NewMessage); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 	body, err := generateResponse(NewMessage.Request)
 	if err != nil {
 		ctx.JSON(200, gin.H{
