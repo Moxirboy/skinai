@@ -123,7 +123,7 @@ func (r repo) CreatePoint(userId interface{}) (err error) {
 	query := `
 	insert into bonus(user_id) values($1)
 `
-	_, err := r.db.Exec(query, userId)
+	_, err = r.db.Exec(query, userId)
 	if err != nil {
 		r.Bot.SendErrorNotification(err)
 		return err
