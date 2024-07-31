@@ -75,6 +75,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard/middle/createQuestions": {
+            "post": {
+                "description": "Creates a new fact question and returns the created fact questions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "Create a fact question",
+                "operationId": "create-fact-question",
+                "parameters": [
+                    {
+                        "description": "List of fact questions to be created",
+                        "name": "fact",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/middle/get-point": {
             "get": {
                 "description": "get user point",
@@ -218,44 +256,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.Fact"
-                        }
-                    }
-                }
-            }
-        },
-        "/fact/createQuestions": {
-            "post": {
-                "description": "Creates a new fact question and returns the created fact questions.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fact"
-                ],
-                "summary": "Create a fact question",
-                "operationId": "create-fact-question",
-                "parameters": [
-                    {
-                        "description": "List of fact questions to be created",
-                        "name": "fact",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.FactQuestions"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.FactQuestions"
-                            }
                         }
                     }
                 }
@@ -423,7 +423,13 @@ const docTemplate = `{
         "domain.NewMessage": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "string"
+                },
                 "message": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

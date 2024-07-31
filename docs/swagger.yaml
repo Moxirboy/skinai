@@ -2,7 +2,11 @@ basePath: /api/v1
 definitions:
   domain.NewMessage:
     properties:
+      id:
+        type: string
       message:
+        type: string
+      name:
         type: string
     type: object
   dto.Choices:
@@ -141,6 +145,31 @@ paths:
       summary: buy premium
       tags:
       - users
+  /dashboard/middle/createQuestions:
+    post:
+      description: Creates a new fact question and returns the created fact questions.
+      operationId: create-fact-question
+      parameters:
+      - description: List of fact questions to be created
+        in: body
+        name: fact
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/dto.FactQuestions'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/dto.FactQuestions'
+            type: array
+      summary: Create a fact question
+      tags:
+      - fact
   /dashboard/middle/get-point:
     get:
       description: get user point
@@ -236,31 +265,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.Fact'
       summary: create fact
-      tags:
-      - fact
-  /fact/createQuestions:
-    post:
-      description: Creates a new fact question and returns the created fact questions.
-      operationId: create-fact-question
-      parameters:
-      - description: List of fact questions to be created
-        in: body
-        name: fact
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/dto.FactQuestions'
-          type: array
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            items:
-              $ref: '#/definitions/dto.FactQuestions'
-            type: array
-      summary: Create a fact question
       tags:
       - fact
   /fact/getFact:
