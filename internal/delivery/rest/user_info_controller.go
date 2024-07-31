@@ -8,8 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
 // CreateUserHandler godoc
 // @Summary User info
 // @Description User Info with the input attributes
@@ -36,7 +34,7 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 		c.bot.SendErrorNotification(err)
 		ctx.JSON(400, gin.H{
 			"Message": "Bad request",
-			"error":err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -66,6 +64,15 @@ func (c controller) UpdateUserInfo(ctx *gin.Context) {
 	}
 	ctx.String(200, "id: ", id)
 }
+
+// CreateUserHandler godoc
+// @Summary User info
+// @Description Get User Info
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} dto.UserInfo
+// @Router /dashboard/fillUserInfo [get]
 func (c controller) ShowUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
 	s := sessions.Default(ctx)

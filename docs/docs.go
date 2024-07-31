@@ -25,6 +25,27 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/dashboard/fillUserInfo": {
+            "get": {
+                "description": "Get User Info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "User info",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserInfo"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "User Info with the input attributes",
                 "consumes": [
@@ -88,6 +109,38 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/fact/create": {
+            "post": {
+                "description": "create fact",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "create fact",
+                "operationId": "create-fact",
+                "parameters": [
+                    {
+                        "description": "Fact",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Fact"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Fact"
+                        }
                     }
                 }
             }
@@ -192,6 +245,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.Fact": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "number_of_question": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Item": {
             "type": "object",
             "properties": {

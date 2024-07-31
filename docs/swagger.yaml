@@ -1,5 +1,16 @@
 basePath: /api/v1
 definitions:
+  dto.Fact:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      number_of_question:
+        type: integer
+      title:
+        type: string
+    type: object
   dto.Item:
     properties:
       activity_code:
@@ -73,6 +84,20 @@ info:
   version: "1.0"
 paths:
   /dashboard/fillUserInfo:
+    get:
+      consumes:
+      - application/json
+      description: Get User Info
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserInfo'
+      summary: User info
+      tags:
+      - users
     post:
       consumes:
       - application/json
@@ -116,6 +141,27 @@ paths:
       summary: get premium
       tags:
       - users
+  /fact/create:
+    post:
+      description: create fact
+      operationId: create-fact
+      parameters:
+      - description: Fact
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Fact'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Fact'
+      summary: create fact
+      tags:
+      - news
   /login:
     post:
       consumes:

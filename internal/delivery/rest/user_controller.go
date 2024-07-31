@@ -149,7 +149,6 @@ func (c controller) Login(ctx *gin.Context) {
 		ctx.String(http.StatusUnauthorized, "Incorrect password")
 		return
 	}
-
 }
 func (c controller) Logout(ctx *gin.Context) {
 	s := sessions.Default(ctx)

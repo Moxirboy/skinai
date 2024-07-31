@@ -14,42 +14,45 @@ func SetUp(
 	uc usecase.IUseCase,
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
-	) {
+) {
 	SetUpHandlerV1(
-			g.Group("/api/v1"),
-			uc,
-			bot,
-			request,
-		)
+		g.Group("/api/v1"),
+		uc,
+		bot,
+		request,
+	)
 
-	}
+}
 func SetUpHandlerV1(
 	group *gin.RouterGroup,
 	uc usecase.IUseCase,
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
-	) {
-		rest.NewController(
-			group,
-			uc.IOtherUseCase(),
-			bot,
-			request,
-		
-		)
-		rest.NewNewsController(
-			group,
-			bot,
-			uc.INewsUsecase(),
-		)
-		rest.NewDoctorController(
-			group,
-			uc.IDoctorUseCase(),
-			bot,
-		)
-		rest.NewSchedule(
-			group,
-			uc.IScheduleUseCase(),
-			bot,
-			request,
-		)
-	}
+) {
+	rest.NewController(
+		group,
+		uc.IOtherUseCase(),
+		bot,
+		request,
+	)
+	rest.NewNewsController(
+		group,
+		bot,
+		uc.INewsUsecase(),
+	)
+	rest.NewDoctorController(
+		group,
+		uc.IDoctorUseCase(),
+		bot,
+	)
+	rest.NewSchedule(
+		group,
+		uc.IScheduleUseCase(),
+		bot,
+		request,
+	)
+	rest.NewFactsController(
+		group,
+		uc.IFactUseCase(),
+	)
+}
