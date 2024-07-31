@@ -16,5 +16,5 @@ FROM facts
 ORDER BY RANDOM()
 LIMIT 5;`
 	GetQuestion = `select id,question from question where fact_id=$1 limit 1 OFFSET $2 `
-	GetChoices  = `select id,content,is_true from choices where question_id=$1`
+	GetChoices  = `select content,is_true from choices where question_id=$1`
 )
