@@ -25,27 +25,6 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/dashboard/fillUserInfo": {
-            "get": {
-                "description": "Get User Info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "User info",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserInfo"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "User Info with the input attributes",
                 "consumes": [
@@ -113,6 +92,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard/showUserInfo": {
+            "get": {
+                "description": "Get User Info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "User info",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/fact/create": {
             "post": {
                 "description": "create fact",
@@ -120,7 +122,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "news"
+                    "fact"
                 ],
                 "summary": "create fact",
                 "operationId": "create-fact",

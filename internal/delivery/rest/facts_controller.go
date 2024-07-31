@@ -24,7 +24,7 @@ func NewFactsController(
 // @Summary create fact
 // @Description create fact
 // @ID create-fact
-// @tags news
+// @tags fact
 // @Produce json
 // @Param user body dto.Fact true "Fact"
 // @Success 201 {object} dto.Fact

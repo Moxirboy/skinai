@@ -84,20 +84,6 @@ info:
   version: "1.0"
 paths:
   /dashboard/fillUserInfo:
-    get:
-      consumes:
-      - application/json
-      description: Get User Info
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.UserInfo'
-      summary: User info
-      tags:
-      - users
     post:
       consumes:
       - application/json
@@ -141,6 +127,21 @@ paths:
       summary: get premium
       tags:
       - users
+  /dashboard/showUserInfo:
+    get:
+      consumes:
+      - application/json
+      description: Get User Info
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserInfo'
+      summary: User info
+      tags:
+      - users
   /fact/create:
     post:
       description: create fact
@@ -161,7 +162,7 @@ paths:
             $ref: '#/definitions/dto.Fact'
       summary: create fact
       tags:
-      - news
+      - fact
   /login:
     post:
       consumes:
