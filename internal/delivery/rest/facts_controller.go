@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -24,6 +23,7 @@ func NewFactsController(
 	router.POST("/createQuestions", handler.CreateQuestions)
 	router.GET("/getFact", handler.GetFact)
 	router.GET("/GetQuestion", handler.GetQuestion)
+	router.GET("/AnswerQuestion", handler.AnswerQuestion)
 }
 
 // CreateFactHandler godoc
@@ -124,10 +124,8 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 	if err != nil {
 		id = 0 // Default value if conversion fails
 	}
-	fmt.Println(id)
 
 	offset, err := strconv.Atoi(offsetStr)
-	fmt.Println(offset)
 	if err != nil {
 		offset = 0 // Default value if conversion fails
 	}
@@ -139,4 +137,41 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 	) // Respond with the extracted parameters
 
 	ctx.JSON(http.StatusOK, facts)
+}
+
+// @Summary Get ID and Offset
+// @Description Retrieve the ID and offset from the query parameters.
+// @Tags fact
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Router /fact/AnswerQuestion [get]
+func (c facts) AnswerQuestion(ctx *gin.Context) {
+	s := sessions.Default(ctx)
+	score := dto.Score{}
+	id := s.Get("userId").(int)
+	if err := ctx.ShouldBind(&score); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	if score.Score == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"message": "score is below  80 No points"})
+		return
+	}
+	if (float64(score.Score)/float64(score.NumberOfQuestion))*100 <= 80 {
+		ctx.JSON(http.StatusOK, gin.H{"message": "score is below  80 No points"})
+		return
+	}
+	bonus, err := c.usecase.UpdatePoint(
+		ctx.Request.Context(),
+		id,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(
+		http.StatusOK, gin.H{
+			"score": bonus,
+		},
+	)
 }

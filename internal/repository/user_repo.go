@@ -11,7 +11,7 @@ func (r repo) Register(user domain.User) (id int, err error) {
 	query := `
 	insert into users (email,username,password,role,created_at,updated_at,deleted_at) values($1,$2,$3,$4,$5,$6,$7) returning id
 `
-	row := r.db.QueryRow(query, user.Phone_number(), user.Username(),user.Password(), user.Role(), user.Created_at(), user.Updated_at(), user.Deleted_at())
+	row := r.db.QueryRow(query, user.Phone_number(), user.Username(), user.Password(), user.Role(), user.Created_at(), user.Updated_at(), user.Deleted_at())
 	if err := row.Scan(&id); err != nil {
 		r.Bot.SendErrorNotification(err)
 		return 0, err
@@ -32,8 +32,7 @@ func (r repo) Exist(email string) (exist bool, err error) {
 		r.Bot.SendErrorNotification(err)
 		return false, domain.ErrCouldNotScan
 	}
-	
-	
+
 	return exist, nil
 }
 func (r repo) GetByUsername(username string) (id int, password string, err error) {
@@ -96,26 +95,50 @@ func (r repo) UpdateVerified(userId interface{}) (err error) {
 	return nil
 }
 
-func (r repo) IsPremium(userId interface{}) (int,error){
+func (r repo) IsPremium(userId interface{}) (int, error) {
 	var isPremium int
-	query:=`
+	query := `
 	select isPremium from users where id=$1
 	`
-	err:=r.db.QueryRow(query,userId).Scan(&isPremium)
-	if err!=nil{
-		return isPremium,err
+	err := r.db.QueryRow(query, userId).Scan(&isPremium)
+	if err != nil {
+		return isPremium, err
 	}
-	return isPremium,nil
+	return isPremium, nil
 }
 
-func (r repo) UpdatePremium(userId interface{}) (error){
-	query:=`
+func (r repo) UpdatePremium(userId interface{}) error {
+	query := `
 	update users set isPremium=$1 where id=$2
 	`
-	_,err:=r.db.Exec(query,true,userId)
+	_, err := r.db.Exec(query, true, userId)
 	if err != nil {
 		r.Bot.SendErrorNotification(err)
 		return err
 	}
 	return nil
+}
+
+func (r repo) CreatePoint(userId interface{}) (err error) {
+	query := `
+	insert into bonus(user_id) values($1)
+`
+	_, err := r.db.Exec(query, userId)
+	if err != nil {
+		r.Bot.SendErrorNotification(err)
+		return err
+	}
+	return nil
+}
+
+func (r repo) GetPoint(userID interface{}) (value int, err error) {
+	query := `
+	select score from users where id=$1
+`
+	err = r.db.QueryRow(query, userID).Scan(&value)
+	if err != nil {
+		r.Bot.SendErrorNotification(err)
+		return 0, err
+	}
+	return value, nil
 }

@@ -25,4 +25,5 @@ type IFactRepository interface {
 	) ([]dto.Fact, error)
 	GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error)
 	GetChoices(ctx context.Context, id int) ([]dto.Choices, error)
+	UpdatePoint(ctx context.Context, id int) (int, error)
 }

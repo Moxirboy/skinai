@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/repository"
 	"testDeployment/pkg/Bot"
@@ -88,7 +87,7 @@ func (r fact) GetFacts(ctx context.Context) ([]dto.Fact, error) {
 
 func (r fact) GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error) {
 	var question dto.FactQuestions
-	fmt.Println(id)
+
 	err := r.db.QueryRowContext(ctx, GetQuestion, id, offset).Scan(
 		&question.ID,
 		&question.Question,
@@ -96,7 +95,6 @@ func (r fact) GetQuestion(ctx context.Context, id int, offset int) (dto.FactQues
 	if err != nil {
 		return question, err
 	}
-	fmt.Println(question)
 
 	return question, nil
 }
@@ -123,4 +121,18 @@ func (r fact) GetChoices(ctx context.Context, id int) ([]dto.Choices, error) {
 	}
 	rows.Close()
 	return choices, nil
+}
+
+func (r fact) UpdatePoint(ctx context.Context, id int) (int, error) {
+	var score int
+	err := r.db.QueryRowContext(ctx,
+		UpdatePoint,
+		id,
+	).Scan(
+		&score,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return score, nil
 }

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/domain"
 	"testDeployment/pkg/Bot"
@@ -41,16 +41,18 @@ type Repo interface {
 	CreatePhoto(id int, path []string) (err error)
 	GetDrugByName(name string) (drugs []domain.Drug, err error)
 	GetDrugById(id string) (drug domain.Drug, err error)
-	GetAllDrug()(drugs []domain.Drug,err error)
+	GetAllDrug() (drugs []domain.Drug, err error)
 	CreateDoctorInfo(info domain.Doctor) (id int, err error)
-	GetPhotoPath(id int) (path []string,err error)
-	CreateMessage(userId string,isAi bool,message string,time string) (id int,err error)
-	GetAllMessages(userId string )(messages []domain.Message,err error)
-	UpdatePhoto(path string) (id int,err error)
-	GetDrugByType(ctx context.Context,tip string)(drugs []domain.DrugWithoutType,err error)
-	GetAllTypes(ctx context.Context)(Types []domain.DrugByType,err error)
-	IsPremium(userId interface{}) (int,error)
-	UpdatePremium(userId interface{}) (error)
+	GetPhotoPath(id int) (path []string, err error)
+	CreateMessage(userId string, isAi bool, message string, time string) (id int, err error)
+	GetAllMessages(userId string) (messages []domain.Message, err error)
+	UpdatePhoto(path string) (id int, err error)
+	GetDrugByType(ctx context.Context, tip string) (drugs []domain.DrugWithoutType, err error)
+	GetAllTypes(ctx context.Context) (Types []domain.DrugByType, err error)
+	IsPremium(userId interface{}) (int, error)
+	UpdatePremium(userId interface{}) error
+	CreatePoint(userId interface{}) (err error)
+	GetPoint(userID interface{}) (value int, err error)
 }
 
 func NewRepo(db *sql.DB, bot Bot.Bot) Repo {

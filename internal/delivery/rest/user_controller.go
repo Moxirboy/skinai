@@ -70,16 +70,15 @@ func (c controller) SignUp(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
 			"message": response,
 		})
-		
+
 		// c.bot.SendNotification("email:" + NewUser.PhoneNumber)
 		// c.bot.SendNotification("code:" + code)
 		// s.Set("code", code)
-		
+
 		// ctx.String(http.StatusOK, "verification code sent")
 	}
 
 }
-
 
 // CreateUserHandler godoc
 // @Summary Login user
@@ -116,7 +115,7 @@ func (c controller) Login(ctx *gin.Context) {
 		})
 		return
 	}
-	
+
 	if !exist {
 		ctx.JSON(404, gin.H{
 			"message": "No such user",
@@ -184,18 +183,18 @@ func (cr controller) DeleteAccount(c *gin.Context) {
 
 // CreateUserHandler godoc
 // @Summary get premium
-// @Description get premium user 
+// @Description get premium user
 // @Tags users
 // @Produce  json
-// @Success 200 
+// @Success 200
 // @Router /dashboard/middle/get_premium [get]
 func (cr controller) GetPremium(c *gin.Context) {
-	s:=sessions.Default(c)
-	id:=s.Get("userId").(int)
-	isPremium,err:=cr.usecase.IsPremium(id)
-	if err!=nil{
+	s := sessions.Default(c)
+	id := s.Get("userId").(int)
+	isPremium, err := cr.usecase.IsPremium(id)
+	if err != nil {
 		c.JSON(
-			http.StatusBadRequest,err.Error(),
+			http.StatusBadRequest, err.Error(),
 		)
 		return
 	}
@@ -203,24 +202,46 @@ func (cr controller) GetPremium(c *gin.Context) {
 		"premium": isPremium,
 	})
 }
+
 // CreateUserHandler godoc
 // @Summary buy premium
-// @Description buy premium user 
+// @Description buy premium user
 // @Tags users
 // @Produce  json
-// @Success 200 
+// @Success 200
 // @Router /dashboard/middle/buy_premium [get]
-func (cr controller) BuyPremium(c *gin.Context){
-	s:=sessions.Default(c)
-	id:=s.Get("userId").(int)
-	err:=cr.usecase.UpdatePremium(id)
-	if err!=nil{
+func (cr controller) BuyPremium(c *gin.Context) {
+	s := sessions.Default(c)
+	id := s.Get("userId").(int)
+	err := cr.usecase.UpdatePremium(id)
+	if err != nil {
 		c.JSON(
-			http.StatusBadRequest,err.Error(),
+			http.StatusBadRequest, err.Error(),
 		)
 		return
 	}
 	c.JSON(200, gin.H{
 		"message": "success",
+	})
+}
+
+// CreateUserHandler godoc
+// @Summary get user point
+// @Description get user point
+// @Tags users
+// @Produce  json
+// @Success 200
+// @Router /dashboard/middle/get-point [get]
+func (cr controller) GetPoint(c *gin.Context) {
+	s := sessions.Default(c)
+	id := s.Get("userId").(int)
+	point, err := cr.usecase.GetPoint(id)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest, err.Error(),
+		)
+	}
+	c.JSON(200, gin.H{
+		"point": point,
 	})
 }

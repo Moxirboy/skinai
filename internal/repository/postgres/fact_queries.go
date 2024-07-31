@@ -17,4 +17,5 @@ ORDER BY RANDOM()
 LIMIT 5;`
 	GetQuestion = `select id,question from question where fact_id=$1 limit 1 OFFSET $2 `
 	GetChoices  = `select content,is_true from choices where question_id=$1`
+	UpdatePoint = `update table bonus set score =score+1 where user_id=$1 returning score`
 )

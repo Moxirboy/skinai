@@ -36,6 +36,7 @@ type Usecase interface {
 	GetAllTypes(ctx context.Context) (Types []domain.DrugByType, err error)
 	IsPremium(userId interface{}) (int, error)
 	UpdatePremium(userId interface{}) error
+	GetPoint(userID interface{}) (value int, err error)
 }
 type INewsUseCase interface {
 	GetAll(ctx context.Context, query utils.PaginationQuery) (news *domain.NewsList, err error)
@@ -65,6 +66,7 @@ type IFactUseCase interface {
 		ctx context.Context,
 	) ([]dto.Fact, error)
 	GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error)
+	UpdatePoint(ctx context.Context, id int) (int, error)
 }
 
 func NewUserUsecase(repo repository.Repo, bot Bot.Bot) Usecase {

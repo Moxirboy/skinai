@@ -15,6 +15,11 @@ func (u usecase) RegisterUser(newUser *dto.User) (int, error) {
 		u.bot.SendErrorNotification(err)
 		return 0, err
 	}
+	err = u.repo.CreatePoint(id)
+	if err != nil {
+		u.bot.SendErrorNotification(err)
+		return 0, err
+	}
 	return id, nil
 }
 func (u usecase) Exist(newUser dto.User) (bool, error) {
@@ -70,9 +75,12 @@ func (u usecase) DeleteUser(id int) (err error) {
 	return nil
 }
 
-func (u usecase) IsPremium(userId interface{}) (int,error){
+func (u usecase) IsPremium(userId interface{}) (int, error) {
 	return u.repo.IsPremium(userId)
 }
-func (u usecase) UpdatePremium(userId interface{}) (error){
-	return u.UpdatePremium(userId)
+func (u usecase) UpdatePremium(userId interface{}) error {
+	return u.repo.UpdatePremium(userId)
+}
+func (u usecase) GetPoint(userID interface{}) (value int, err error) {
+	return u.repo.GetPoint(userID)
 }

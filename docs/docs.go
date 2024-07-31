@@ -75,6 +75,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard/middle/get-point": {
+            "get": {
+                "description": "get user point",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "get user point",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/dashboard/middle/get_premium": {
             "get": {
                 "description": "get premium user",
@@ -111,6 +128,26 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.UserInfo"
                         }
+                    }
+                }
+            }
+        },
+        "/fact/AnswerQuestion": {
+            "get": {
+                "description": "Retrieve the ID and offset from the query parameters.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "Get ID and Offset",
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }

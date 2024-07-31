@@ -136,6 +136,17 @@ paths:
       summary: buy premium
       tags:
       - users
+  /dashboard/middle/get-point:
+    get:
+      description: get user point
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: get user point
+      tags:
+      - users
   /dashboard/middle/get_premium:
     get:
       description: get premium user
@@ -162,6 +173,19 @@ paths:
       summary: User info
       tags:
       - users
+  /fact/AnswerQuestion:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the ID and offset from the query parameters.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get ID and Offset
+      tags:
+      - fact
   /fact/GetQuestion:
     get:
       consumes:

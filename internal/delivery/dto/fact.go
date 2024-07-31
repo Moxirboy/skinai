@@ -18,3 +18,8 @@ type Choices struct {
 	Content string `json:"content"`
 	IsTrue  bool   `json:"is_true"`
 }
+
+type Score struct {
+	NumberOfQuestion int `json:"number_of_question"`
+	Score            int `json:"score"`
+}
