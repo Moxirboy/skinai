@@ -22,7 +22,7 @@ import (
 // @Produce json
 // @Param fact body domain.NewMessage true "List of fact questions to be created"
 // @Success 201 {array} domain.NewMessage
-// @Router /fact/send-request [post]
+// @Router /dashboard/middle/send-request [post]
 func (c controller) SendMessage(ctx *gin.Context) {
 	var err error
 	var NewMessage domain.NewMessage

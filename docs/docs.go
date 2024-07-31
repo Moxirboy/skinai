@@ -75,44 +75,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboard/middle/createQuestions": {
-            "post": {
-                "description": "Creates a new fact question and returns the created fact questions.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fact"
-                ],
-                "summary": "Create a fact question",
-                "operationId": "create-fact-question",
-                "parameters": [
-                    {
-                        "description": "List of fact questions to be created",
-                        "name": "fact",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.FactQuestions"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.FactQuestions"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/dashboard/middle/get-point": {
             "get": {
                 "description": "get user point",
@@ -143,6 +105,41 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/dashboard/middle/send-request": {
+            "post": {
+                "description": "Creates a new fact question and returns the created fact questions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "Create a fact question",
+                "operationId": "message",
+                "parameters": [
+                    {
+                        "description": "List of fact questions to be created",
+                        "name": "fact",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.NewMessage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.NewMessage"
+                            }
+                        }
                     }
                 }
             }
@@ -261,6 +258,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/fact/createQuestions": {
+            "post": {
+                "description": "Creates a new fact question and returns the created fact questions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "Create a fact question",
+                "operationId": "create-fact-question",
+                "parameters": [
+                    {
+                        "description": "List of fact questions to be created",
+                        "name": "fact",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.FactQuestions"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/fact/getFact": {
             "get": {
                 "description": "Get a 5 facts",
@@ -279,41 +314,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/dto.Fact"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/fact/send-request": {
-            "post": {
-                "description": "Creates a new fact question and returns the created fact questions.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "message"
-                ],
-                "summary": "Create a fact question",
-                "operationId": "message",
-                "parameters": [
-                    {
-                        "description": "List of fact questions to be created",
-                        "name": "fact",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.NewMessage"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.NewMessage"
                             }
                         }
                     }
