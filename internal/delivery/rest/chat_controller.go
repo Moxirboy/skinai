@@ -27,13 +27,14 @@ func (c controller) SendMessage(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&NewMessage); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	body, err := generateResponse(NewMessage.Request)
+	//body, err := generateResponse(NewMessage.Request)
 	if err != nil {
 		ctx.JSON(200, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	body := ""
 	// Send the response back to the client
 	ctx.String(http.StatusOK, string(body))
 }
