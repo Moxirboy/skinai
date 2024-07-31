@@ -208,6 +208,22 @@ paths:
       summary: Create a fact question
       tags:
       - fact
+  /fact/getFact:
+    get:
+      description: Get a 5 facts
+      operationId: get-fact
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Fact'
+            type: array
+      summary: Get a fact
+      tags:
+      - fact
   /login:
     post:
       consumes:

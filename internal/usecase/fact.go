@@ -55,3 +55,10 @@ func (u factUseCase) CreateFact(
 	}
 	return nil
 }
+
+func (u factUseCase) GetFacts(
+	ctx context.Context,
+) ([]dto.Fact, error) {
+	return u.repo.GetFacts(
+		ctx)
+}

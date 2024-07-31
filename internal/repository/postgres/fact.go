@@ -55,5 +55,32 @@ func (r fact) CreateChoices(
 		}
 	}
 	return nil
+}
 
+func (r fact) GetFacts(ctx context.Context) ([]dto.Fact, error) {
+	row, err := r.db.QueryContext(
+		ctx,
+		GetFacts,
+	)
+	if err != nil {
+		row.Close()
+		return nil, err
+	}
+	facts := []dto.Fact{}
+	for row.Next() {
+		var fact dto.Fact
+		err := row.Scan(
+			&fact.Id,
+			&fact.Title,
+			&fact.Content,
+			&fact.NumberOfQuestion,
+		)
+		if err != nil {
+			row.Close()
+			return nil, err
+		}
+		facts = append(facts, fact)
+	}
+	row.Close()
+	return facts, nil
 }

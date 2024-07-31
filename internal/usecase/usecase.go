@@ -61,6 +61,9 @@ type IFactUseCase interface {
 		ctx context.Context,
 		fact *dto.Fact,
 	) error
+	GetFacts(
+		ctx context.Context,
+	) ([]dto.Fact, error)
 }
 
 func NewUserUsecase(repo repository.Repo, bot Bot.Bot) Usecase {

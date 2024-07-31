@@ -20,6 +20,7 @@ func NewFactsController(
 	router := r.Group("/fact")
 	router.POST("/create", handler.NewFact)
 	router.POST("/createQuestions", handler.CreateQuestions)
+	router.GET("/getFacts", handler.GetFact)
 }
 
 // CreateFactHandler godoc
@@ -83,4 +84,21 @@ func (c facts) CreateQuestions(ctx *gin.Context) {
 		http.StatusCreated,
 		gin.H{"message": "successfully created"},
 	)
+}
+
+// CreateFactHandler godoc
+// @Summary Get a fact
+// @Description Get a 5 facts
+// @ID get-fact
+// @tags fact
+// @Produce json
+// @Success 200 {array} dto.Fact
+// @Router /fact/getFact [get]
+func (c facts) GetFact(ctx *gin.Context) {
+	facts, err := c.usecase.GetFacts(
+		ctx.Request.Context())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	ctx.JSON(http.StatusOK, facts)
 }

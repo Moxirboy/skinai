@@ -179,6 +179,30 @@
                 }
             }
         },
+        "/fact/getFact": {
+            "get": {
+                "description": "Get a 5 facts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "Get a fact",
+                "operationId": "get-fact",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Fact"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login user with the input username,password",

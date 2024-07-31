@@ -20,4 +20,7 @@ type IFactRepository interface {
 		ctx context.Context,
 		fact *dto.Fact,
 	) error
+	GetFacts(
+		ctx context.Context,
+	) ([]dto.Fact, error)
 }
