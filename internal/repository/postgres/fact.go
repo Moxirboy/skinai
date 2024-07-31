@@ -94,7 +94,7 @@ func (r fact) GetQuestion(ctx context.Context, id int, offset int) (dto.FactQues
 		&question.Question,
 	)
 	if err != nil {
-		return nil, err
+		return question, err
 	}
 	fmt.Println(question)
 

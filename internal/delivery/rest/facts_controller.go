@@ -137,9 +137,6 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 		id,
 		offset,
 	) // Respond with the extracted parameters
-	if facts == nil {
-		ctx.JSON(http.StatusOK, gin.H{"message": "question are over"})
-		return
-	}
+
 	ctx.JSON(http.StatusOK, facts)
 }

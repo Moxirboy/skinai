@@ -70,7 +70,7 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (dto.F
 		offset,
 	)
 	if err != nil {
-		return nil, err
+		return question, err
 	}
 	fmt.Println(question)
 	choices, err := u.repo.GetChoices(
@@ -78,7 +78,7 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (dto.F
 		question.ID,
 	)
 	if err != nil {
-		return nil, err
+		return question, err
 	}
 	fmt.Println(choices)
 	question.Choices = choices
