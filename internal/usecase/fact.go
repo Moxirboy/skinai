@@ -73,14 +73,14 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (dto.F
 		return question, err
 	}
 	fmt.Println(question)
-	choices, err := u.repo.GetChoices(
+	question.Choices, err = u.repo.GetChoices(
 		ctx,
 		question.ID,
 	)
 	if err != nil {
 		return question, err
 	}
-	fmt.Println(choices)
-	question.Choices = choices
+	fmt.Println("numa: ", question)
+
 	return question, nil
 }
