@@ -2,11 +2,7 @@ basePath: /api/v1
 definitions:
   domain.NewMessage:
     properties:
-      id:
-        type: string
       message:
-        type: string
-      name:
         type: string
     type: object
   dto.Choices:
@@ -112,6 +108,29 @@ info:
   title: Skin Ai Swagger
   version: "1.0"
 paths:
+  /chat/generate:
+    post:
+      description: send message to ai
+      operationId: message
+      parameters:
+      - description: List of fact questions to be created
+        in: body
+        name: ai
+        required: true
+        schema:
+          $ref: '#/definitions/domain.NewMessage'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/domain.NewMessage'
+            type: array
+      summary: send message to ai
+      tags:
+      - message
   /dashboard/fillUserInfo:
     post:
       consumes:
@@ -167,29 +186,6 @@ paths:
       summary: get premium
       tags:
       - users
-  /dashboard/middle/send-request:
-    post:
-      description: Creates a new fact question and returns the created fact questions.
-      operationId: message
-      parameters:
-      - description: List of fact questions to be created
-        in: body
-        name: fact
-        required: true
-        schema:
-          $ref: '#/definitions/domain.NewMessage'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            items:
-              $ref: '#/definitions/domain.NewMessage'
-            type: array
-      summary: Create a fact question
-      tags:
-      - message
   /dashboard/showUserInfo:
     get:
       consumes:

@@ -24,6 +24,41 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/chat/generate": {
+            "post": {
+                "description": "send message to ai",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "send message to ai",
+                "operationId": "message",
+                "parameters": [
+                    {
+                        "description": "List of fact questions to be created",
+                        "name": "ai",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.NewMessage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.NewMessage"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/fillUserInfo": {
             "post": {
                 "description": "User Info with the input attributes",
@@ -105,41 +140,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/dashboard/middle/send-request": {
-            "post": {
-                "description": "Creates a new fact question and returns the created fact questions.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "message"
-                ],
-                "summary": "Create a fact question",
-                "operationId": "message",
-                "parameters": [
-                    {
-                        "description": "List of fact questions to be created",
-                        "name": "fact",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.NewMessage"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.NewMessage"
-                            }
-                        }
                     }
                 }
             }
@@ -423,13 +423,7 @@ const docTemplate = `{
         "domain.NewMessage": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "message": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }

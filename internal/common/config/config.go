@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"github.com/caarlos0/env/v6"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -12,6 +13,7 @@ type Config struct {
 	JWT
 	InitConfig
 	BotConfig
+	Cookie
 }
 type Postgres struct {
 	Port     string `env:"POSTGRES_PORT"`
@@ -26,7 +28,7 @@ type JWT struct {
 	Salt       string `env:"SALT"`
 	TokenTTL   string `env:"TOKEN_TTL"`
 }
-type Server struct{
+type Server struct {
 	Port string
 }
 type InitConfig struct {
@@ -34,6 +36,11 @@ type InitConfig struct {
 }
 type BotConfig struct {
 	BotToken string `env:"BOT_TOKEN"`
+}
+type Cookie struct {
+	Sessions string `env:"SESSIONS"`
+	Token    string `env:"COOKIE_TOKEN"`
+	Age      int    `env:"COOKIE_AGE"`
 }
 
 var instance Config
@@ -43,7 +50,7 @@ func Configuration() *Config {
 	if err := env.Parse(&instance); err != nil {
 		panic(err)
 	}
-	instance.BotConfig.BotToken=""
+	fmt.Println(instance)
 	return &instance
 
 }

@@ -5,6 +5,7 @@ import (
 	"testDeployment/internal/delivery/rest"
 	"testDeployment/internal/usecase"
 	"testDeployment/pkg/Bot"
+	ai2 "testDeployment/pkg/ai"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,12 +15,14 @@ func SetUp(
 	uc usecase.IUseCase,
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
+	model *ai2.Dermato,
 ) {
 	SetUpHandlerV1(
 		g.Group("/api/v1"),
 		uc,
 		bot,
 		request,
+		model,
 	)
 
 }
@@ -28,6 +31,7 @@ func SetUpHandlerV1(
 	uc usecase.IUseCase,
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
+	model *ai2.Dermato,
 ) {
 	rest.NewController(
 		group,
@@ -45,14 +49,13 @@ func SetUpHandlerV1(
 		uc.IDoctorUseCase(),
 		bot,
 	)
-	rest.NewSchedule(
-		group,
-		uc.IScheduleUseCase(),
-		bot,
-		request,
-	)
+
 	rest.NewFactsController(
 		group,
 		uc.IFactUseCase(),
+	)
+	rest.NewChat(
+		group,
+		model,
 	)
 }

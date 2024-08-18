@@ -1,75 +1,76 @@
 package server
 
 import (
-	"time"
 	"fmt"
-	"os"
-	configs "testDeployment/internal/common/config"
-	"testDeployment/internal/delivery"
-	request "testDeployment/internal/delivery/http"
-		"testDeployment/pkg/Bot"
-		"testDeployment/internal/usecase"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"os"
 	_ "testDeployment/docs"
+	configs "testDeployment/internal/common/config"
+	"testDeployment/internal/delivery"
+	request "testDeployment/internal/delivery/http"
+	"testDeployment/internal/usecase"
+	"testDeployment/pkg/Bot"
+	ai2 "testDeployment/pkg/ai"
+	"time"
 )
-type Server struct{
+
+type Server struct {
 	cfg *configs.Config
 }
+
 func NewServer(
 	cfg *configs.Config,
-	) *Server{
+) *Server {
 	return &Server{
 		cfg: cfg,
 	}
 }
 
+func (s Server) Run() error {
 
-func (s Server) Run() error{
-	r:=gin.New()
-	
-	store := cookie.NewStore([]byte("curifyDoctorWho"))
+	r := gin.New()
+	conf := configs.Configuration()
+	store := cookie.NewStore([]byte(conf.Token))
 	store.Options(sessions.Options{
 		Path:     "/",
-		MaxAge:   30 * 24 * 60 * 60, // Session expires in 30 days (in seconds)
+		MaxAge:   conf.Age,
 		HttpOnly: true,
-		Secure:   true, // Set Secure to true for HTTPS-only
+		Secure:   true,
 	})
-	r.Use(sessions.Sessions("mysession", store))
+	r.Use(sessions.Sessions(conf.Sessions, store))
 	r.Use(gin.Recovery())
-	
+
 	url := ginSwagger.URL("swagger/doc.json")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,url))
-	token := "6509175022:AAFUZtIJBUJuzW_WuRfbz08AQcYWbL6YYEI"
-	bot, err := configs.BotConfi(token)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	bot, err := configs.BotConfi(conf.BotToken)
 	NewBot := Bot.NewBot(bot)
 	r.Use(ginLogger(NewBot))
 	if err != nil {
 		NewBot.SendErrorNotification(err)
 		return err
-		
+
 	}
 
 	httpClient := request.NewCustomHTTPClient()
 	jsonRequester := request.NewCustomJSONRequester(httpClient)
-	pg, err := configs.NewPostgresConfig()
+	pg, err := configs.NewPostgresConfig(conf)
 	if err != nil {
 		NewBot.SendErrorNotification(err)
+		fmt.Println(err)
 		return err
 	}
-	uc:=usecase.New(pg,NewBot)
-	delivery.SetUp(r,uc,NewBot,*jsonRequester)
-	Port:= os.Getenv("PORT")
-	if Port == "" {
-		Port = "3000"
-	}
-	NewBot.SendNotification("Runnung on : "+Port)
-	return r.Run(fmt.Sprintf(":%s",Port ))
-}
+	uc := usecase.New(pg, NewBot)
+	ai, err := ai2.NewDermato(os.Getenv("apikey"))
+	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai)
 
+	NewBot.SendNotification("Runnung on : " + conf.Port)
+	return r.Run(fmt.Sprintf(":%s", "3000"))
+}
 
 func ginLogger(b Bot.Bot) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -80,7 +81,6 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 		logMessage := fmt.Sprintf("Method: %s, Path: %s, Status: %d, Duration: %v",
 			c.Request.Method, c.Request.URL.Path, statusCode, duration)
 
-		// Send log to Telegram
 		b.SendNotification(logMessage)
 	}
 }

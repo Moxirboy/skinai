@@ -9,8 +9,6 @@ type Message struct {
 }
 type NewMessage struct {
 	Request string `json:"message"`
-	UserId  string `json:"id"`
-	Name    string `json:"name"`
 }
 type Response struct {
 	Response string `json:"request"`

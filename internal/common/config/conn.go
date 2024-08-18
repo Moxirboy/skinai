@@ -2,18 +2,24 @@ package configs
 
 import (
 	"database/sql"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"log"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 )
 
-func NewPostgresConfig() (*sql.DB, error) {
-	instance, err := sql.Open("pgx","postgresql://postgres:wwgUZgtjPIEhJlxUsqGevVcMozwqkrMB@roundhouse.proxy.rlwy.net:48249/railway")
-	if err != nil {
-		panic(err)
-	}
-	err = instance.Ping()
+func NewPostgresConfig(config *Config) (*sql.DB, error) {
+	connStr := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s",
+		config.Postgres.User,
+		config.Postgres.Password,
+		config.Postgres.Host,
+		config.Postgres.Port,
+		config.Postgres.Database,
+	)
+	fmt.Println(connStr)
+	instance, err := sql.Open("pgx", connStr)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +34,6 @@ func BotConfi(as string) (*tgbotapi.BotAPI, error) {
 	}
 	return bot, nil
 }
-
 
 func NewBotConfig(cfg Config) (*tgbotapi.BotAPI, error) {
 	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
