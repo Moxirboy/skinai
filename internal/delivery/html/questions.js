@@ -40,9 +40,13 @@ for (let i = 0; i < Number(questions); i++) {
     // Append the question div to the main container
     container.appendChild(questionDiv);
 }
-
+container.innerHTML +=` <div id="submitBtn" className="next">
+    <button id="next">
+        Next
+    </button>
+</div>`
 // Event listener for submit button
-submitBtn.addEventListener('click', function() {
+submitBtn.addEventListener('click', function () {
     const questionsData = [];
 
     for (let i = 0; i < Number(questions); i++) {
