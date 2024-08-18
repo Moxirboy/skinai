@@ -83,7 +83,7 @@ function submitBtn() {
         .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
-            window.location.href='/create/fact';
+            window.location.href='/api/v1/create/fact';
             // Handle the response from the server
         })
         .catch((error) => {
