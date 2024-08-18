@@ -26,8 +26,8 @@ submitBtn.addEventListener("click", function() {
             .then(response => response.json())
             .then(data => {
                 console.log('Success:', data);
-                localStorage.setItem('factId', data.id);
-                console.log('ID saved to localStorage:', data.id);
+                localStorage.setItem('factId', data.Id);
+                console.log('ID saved to localStorage:', data.Id);
                 window.location.href='/create/fact/question';
 
             })
