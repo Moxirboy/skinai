@@ -14,13 +14,13 @@ type Dermato struct {
 
 func NewDermato(
 	apiKey string,
-) (*Dermato, error) {
+) (Dermato, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create GenAI client: %w", err)
+		return Dermato{}, fmt.Errorf("failed to create GenAI client: %w", err)
 	}
-	return &Dermato{client: client}, nil
+	return Dermato{client: client}, nil
 }
 
 func (d *Dermato) Configure(instruction string, temp, topP float32, topK, maxTokens int32) {
