@@ -2,6 +2,7 @@
 -- Create user_info table
 CREATE TABLE user_info (
                            id SERIAL PRIMARY KEY,
+    firstname text,
                            user_id INT NOT NULL,
                            name VARCHAR(255),
                             birth TIMESTAMP,

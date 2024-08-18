@@ -34,7 +34,7 @@ func (r repo) ExistUserInfo(userId int) (exist bool, err error) {
 }
 func (r repo) CreateInfo(user domain.UserInfo) (id int, err error) {
 	query := `
-	insert into  user_info (user_id,firstname,lastname,skin_color,skin_type,gender,created_at,birth) values($1,$2,$3,$4,$5,$6,$7) RETURNING id
+	insert into  user_info (user_id,firstname,lastname,skin_color,skin_type,gender,created_at,birth) values($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id
 `
 	row := r.db.QueryRow(query, user.Id, user.Firstname, user.Lastname, user.SkinColor, user.SkinType, user.Gender, user.UpdatedAt, user.Date)
 	if err = row.Scan(&id); err != nil {
