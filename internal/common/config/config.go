@@ -14,6 +14,7 @@ type Config struct {
 	InitConfig
 	BotConfig
 	Cookie
+	Ai
 }
 type Postgres struct {
 	Port     string `env:"POSTGRES_PORT"`
@@ -41,6 +42,10 @@ type Cookie struct {
 	Sessions string `env:"SESSIONS"`
 	Token    string `env:"COOKIE_TOKEN"`
 	Age      int    `env:"COOKIE_AGE"`
+}
+
+type Ai struct {
+	Instruction string `env:"INSTRUCTION"`
 }
 
 var instance Config
