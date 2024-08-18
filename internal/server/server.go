@@ -67,9 +67,9 @@ func (s Server) Run() error {
 	uc := usecase.New(pg, NewBot)
 	ai, err := ai2.NewDermato(os.Getenv("apikey"))
 	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai)
-
+	conf.Port = os.Getenv("PORT")
 	NewBot.SendNotification("Runnung on : " + conf.Port)
-	return r.Run(fmt.Sprintf(":%s", "3000"))
+	return r.Run(fmt.Sprintf(":%s", conf.Port))
 }
 
 func ginLogger(b Bot.Bot) gin.HandlerFunc {
