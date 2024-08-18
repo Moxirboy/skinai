@@ -12,7 +12,7 @@ submitBtn.addEventListener("click", function() {
         const fact = {
             title: factTitle,
             content: content,
-            number_of_question: numberOfQuestions
+            number_of_question: Number(numberOfQuestions)
         };
         data=JSON.stringify(fact)
     console.log(data)
