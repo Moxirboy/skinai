@@ -545,6 +545,9 @@ const docTemplate = `{
         "dto.UserInfo": {
             "type": "object",
             "properties": {
+                "date": {
+                    "type": "string"
+                },
                 "firstname": {
                     "type": "string"
                 },

@@ -81,6 +81,8 @@ definitions:
     type: object
   dto.UserInfo:
     properties:
+      date:
+        type: string
       firstname:
         type: string
       gender:

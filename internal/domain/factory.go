@@ -11,8 +11,8 @@ type Factory struct {
 func (f Factory) CreateUser(newUser *dto.User) *User {
 	return &User{
 		phone_number: newUser.Email,
-		username: newUser.Username,
-		password: newUser.Password,
+		username:     newUser.Username,
+		password:     newUser.Password,
 		role:         "user",
 		created_at:   time.Now().UTC(),
 		updated_at:   time.Now().UTC(),
@@ -38,21 +38,23 @@ func (f Factory) ParseDomainToModel(u User) {
 }
 func (f Factory) ParseModelToUserInfo(u dto.UserInfo) *UserInfo {
 	return &UserInfo{
-		Id: u.Id,
+		Id:        u.Id,
 		Firstname: u.Firstname,
-		Lastname: u.Lastname,
-		Gender: u.Gender,
+		Lastname:  u.Lastname,
+		Gender:    u.Gender,
 		SkinColor: u.SkinColor,
-		SkinType: u.SkinType,
+		SkinType:  u.SkinType,
 		UpdatedAt: time.Now(),
+		Date:      u.Date,
 	}
 }
-func (f Factory) ParseUserInfoToModel(u UserInfo)  *dto.UserInfo{
+func (f Factory) ParseUserInfoToModel(u UserInfo) *dto.UserInfo {
 	return &dto.UserInfo{
 		Firstname: u.Firstname,
-		Lastname: u.Lastname,
-		Gender: u.Gender,
+		Lastname:  u.Lastname,
+		Gender:    u.Gender,
 		SkinColor: u.SkinColor,
-		SkinType: u.SkinType,
+		SkinType:  u.SkinType,
+		Date:      u.Date,
 	}
 }

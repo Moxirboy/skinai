@@ -9,5 +9,6 @@ type UserInfo struct {
 	SkinColor int
 	SkinType  int
 	Gender    string
+	Date      time.Time
 	UpdatedAt time.Time
 }

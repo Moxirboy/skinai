@@ -4,7 +4,7 @@ CREATE TABLE user_info (
                            id SERIAL PRIMARY KEY,
                            user_id INT NOT NULL,
                            name VARCHAR(255),
-                            
+                            birth TIMESTAMP,
                            created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
                            updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
                            deleted_at TIMESTAMP,

@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function() {
         //             localStorage.setItem('factId', data.id);
         //             console.log('ID saved to localStorage:', data.id);
         //             window.location.href();
-        //            // window.location.href = 'https://xhamster.com/categories/hardcore';
         //         }
         //     })
         //     .catch((error) => {
