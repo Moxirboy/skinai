@@ -62,7 +62,7 @@ function submitBtn() {
         }
 
         questionsData.push({
-            fact_id:fact_id,
+            fact_id: Number(fact_id),
             question: questionInput,
             choices: choices
         });
