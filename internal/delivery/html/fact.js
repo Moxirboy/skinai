@@ -9,18 +9,19 @@ submitBtn.addEventListener("click", function() {
         console.log("Fact title:", factTitle);
         console.log("Content:", content);
         console.log("Number of questions:", numberOfQuestions);
-        const data = {
+        const fact = {
             title: factTitle,
             content: content,
             number_of_question: numberOfQuestions
         };
-
+        data=JSON.stringify(fact)
+    console.log(data)
         fetch('/api/v1/fact/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: data,
         })
             .then(response => response.json())
             .then(data => {
