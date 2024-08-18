@@ -10,8 +10,6 @@ func NewFrontend(
 	log log.Logger,
 ) {
 
-	g.Static("/static", "internal/controller/templates")
-	g.StaticFile("/", "internal/controller/templates/login.html")
-	g.StaticFile("/sign", "internal/controller/templates/signUp.html")
-
+	g.StaticFile("/create/fact", "internal/controller/templates/fact.html")
+	g.StaticFile("/create/fact/question", "internal/controller/templates/questions.html")
 }
