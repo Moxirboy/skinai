@@ -23,7 +23,7 @@ func (u usecase) RegisterUser(newUser *dto.User) (int, error) {
 	return id, nil
 }
 func (u usecase) Exist(newUser dto.User) (bool, error) {
-	exist, err := u.repo.Exist(newUser.Email)
+	exist, err := u.repo.Exist(newUser.Username)
 	if errors.Is(err, domain.ErrPhoneNumberExist) || !exist {
 		u.bot.SendErrorNotification(err)
 		return false, nil

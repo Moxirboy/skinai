@@ -38,6 +38,7 @@ func (c controller) SendMessage(ctx *gin.Context) {
 	// Send the response back to the client
 	ctx.String(http.StatusOK, string(body))
 }
+
 func (c controller) GetAllMessages(ctx *gin.Context) {
 	s := sessions.Default(ctx)
 	UserID := s.Get("userId").(int)

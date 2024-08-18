@@ -17,28 +17,36 @@ document.addEventListener("DOMContentLoaded", function() {
             number_of_question: numberOfQuestions
         };
 
-        fetch('/api/v1/fact/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                if (data.id) {
-                    // Save the returned ID to localStorage
-                    localStorage.setItem('factId', data.id);
-                    console.log('ID saved to localStorage:', data.id);
-                    window.location.href();
-                   // window.location.href = 'https://xhamster.com/categories/hardcore';
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+        // fetch('/api/v1/fact/create', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify(data)
+        // })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         console.log('Success:', data);
+        //         if (data.id) {
+        //             // Save the returned ID to localStorage
+        //             localStorage.setItem('factId', data.id);
+        //             console.log('ID saved to localStorage:', data.id);
+        //             window.location.href();
+        //            // window.location.href = 'https://xhamster.com/categories/hardcore';
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         console.error('Error:', error);
+        //     });
         // If you want to do something with these values, you can do it here
         // For example, send them to a server or store them locally
     });
 });
+
+
+function saveQuestions(event){
+    event.preventDefault();
+    const questions=document.querySelector('.number_question input').value;
+    localStorage.setItem('numberquestion', questions);
+    window.location.href='http://localhost:63342/skinai/internal/delivery/html/questions.html';
+}

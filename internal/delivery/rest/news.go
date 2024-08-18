@@ -14,18 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type news struct{
-	uc usecase.INewsUseCase
+type news struct {
+	uc  usecase.INewsUseCase
 	bot Bot.Bot
 }
-func NewNewsController(g *gin.RouterGroup,bot Bot.Bot,	uc usecase.INewsUseCase){
-	controller:=news{
-		uc:uc,
+
+func NewNewsController(g *gin.RouterGroup, bot Bot.Bot, uc usecase.INewsUseCase) {
+	controller := news{
+		uc:  uc,
 		bot: bot,
 	}
-	r:=g.Group("/news")
-	r.GET("/getall",controller.GetAll)
-	r.GET("/getone",controller.GetOneById)
+	r := g.Group("/news")
+	r.GET("/getall", controller.GetAll)
+	r.GET("/getone", controller.GetOneById)
 }
 
 // CreateUserHandler godoc
@@ -37,16 +38,16 @@ func NewNewsController(g *gin.RouterGroup,bot Bot.Bot,	uc usecase.INewsUseCase){
 // @Param page query int true "Page number"
 // @Success 200 {object} dto.Response
 // @Router /news/getall [get]
-func (cr news) GetAll(c *gin.Context){
-	pq,err:=utils.GetPaginationFromCtx(c)
-	if err!=nil{
+func (cr news) GetAll(c *gin.Context) {
+	pq, err := utils.GetPaginationFromCtx(c)
+	if err != nil {
 		cr.bot.SendErrorNotification(err)
-		c.JSON(200,gin.H{
-			"message":"No news yet",
+		c.JSON(200, gin.H{
+			"message": "No news yet",
 		})
 	}
-	
-	url := fmt.Sprintf("https://api-portal.gov.uz/news/category?code_name=news&page=%d",pq.GetPage())
+
+	url := fmt.Sprintf("https://api-portal.gov.uz/news/category?code_name=news&page=%d", pq.GetPage())
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -61,9 +62,6 @@ func (cr news) GetAll(c *gin.Context){
 		log.Fatalf("Error reading response body: %v", err)
 	}
 
-	// Print the response body for debugging
-	fmt.Println("Response body:", string(body))
-
 	// Unmarshal the JSON data into the Response struct
 	var response dto.Response
 	err = json.Unmarshal(body, &response)
@@ -73,26 +71,26 @@ func (cr news) GetAll(c *gin.Context){
 
 	// Print the details of each item
 	for i, item := range response.Data {
-		response.Data[i].UrlToWeb=fmt.Sprintf("https://gov.uz/news/view/%d/",item.ID)
+		response.Data[i].UrlToWeb = fmt.Sprintf("https://gov.uz/news/view/%d/", item.ID)
 	}
-	
-	c.JSON(200,response)
+
+	c.JSON(200, response)
 }
-func (cr news) GetOneById(c *gin.Context){
-	id:=c.Query("id")
-	news,err:=cr.uc.GetOneById(c,id)
-	if err!=nil{
+func (cr news) GetOneById(c *gin.Context) {
+	id := c.Query("id")
+	news, err := cr.uc.GetOneById(c, id)
+	if err != nil {
 		cr.bot.SendErrorNotification(err)
-		c.JSON(200,gin.H{
-			"message":"No news yet",
+		c.JSON(200, gin.H{
+			"message": "No news yet",
 		})
 		return
 	}
-	if news==nil{
-		c.JSON(200,gin.H{
-			"message":"no such news",
+	if news == nil {
+		c.JSON(200, gin.H{
+			"message": "no such news",
 		})
 		return
 	}
-	c.JSON(200,news)
+	c.JSON(200, news)
 }
