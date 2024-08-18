@@ -546,7 +546,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "firstname": {
                     "type": "string"

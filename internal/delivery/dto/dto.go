@@ -14,5 +14,5 @@ type UserInfo struct {
 	SkinColor int       `json:"skin_color"`
 	SkinType  int       `json:"skin_type"`
 	Gender    string    `json:"gender"`
-	Date      time.Time `json:"date"`
+	Date      time.Time `json:"date" format:"date-time"`
 }
