@@ -1,6 +1,5 @@
 const questions=localStorage.getItem('numberquestion')
 const container = document.querySelector('.container');
-const submitBtn = document.getElementById('submitBtn');
 const fact_id=localStorage.getItem('factId')
 
 for (let i = 0; i < Number(questions); i++) {
@@ -41,12 +40,12 @@ for (let i = 0; i < Number(questions); i++) {
     container.appendChild(questionDiv);
 }
 container.innerHTML +=` <div id="submitBtn" className="next">
-    <button id="next">
+    <button id="next" onclick="submitBtn()">
         Next
     </button>
 </div>`
 // Event listener for submit button
-submitBtn.addEventListener('click', function () {
+function submitBtn() {
     const questionsData = [];
 
     for (let i = 0; i < Number(questions); i++) {
@@ -91,4 +90,4 @@ submitBtn.addEventListener('click', function () {
             console.error('Error:', error);
             // Handle any errors
         });
-});
+}
