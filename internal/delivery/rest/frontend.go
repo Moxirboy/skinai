@@ -8,6 +8,6 @@ func NewFrontend(
 	g *gin.RouterGroup,
 ) {
 
-	g.StaticFile("/create/fact", "internal/controller/templates/fact.html")
-	g.StaticFile("/create/fact/question", "internal/controller/templates/questions.html")
+	g.StaticFile("/create/fact", "internal/delivery/html/fact.html")
+	g.StaticFile("/create/fact/question", "internal/delivery/html/questions.html")
 }
