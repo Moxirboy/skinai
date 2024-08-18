@@ -42,7 +42,7 @@ for (let i = 0; i < Number(questions); i++) {
 }
 
 // Event listener for submit button
-submitBtn.addEventListener('click', () => {
+submitBtn.addEventListener('click', function() {
     const questionsData = [];
 
     for (let i = 0; i < Number(questions); i++) {
