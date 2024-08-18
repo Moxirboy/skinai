@@ -33,6 +33,9 @@ func SetUpHandlerV1(
 	request request.CustomJSONRequester,
 	model *ai2.Dermato,
 ) {
+	rest.NewFrontend(
+		group,
+	)
 	rest.NewController(
 		group,
 		uc.IOtherUseCase(),
