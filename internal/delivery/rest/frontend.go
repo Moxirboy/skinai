@@ -7,7 +7,7 @@ import (
 func NewFrontend(
 	g *gin.RouterGroup,
 ) {
-
+	g.Static("/", "internal/delivery/html/*")
 	g.StaticFile("/create/fact", "internal/delivery/html/fact.html")
 	g.StaticFile("/create/fact/question", "internal/delivery/html/questions.html")
 }
