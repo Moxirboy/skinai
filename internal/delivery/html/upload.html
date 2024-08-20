@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload and Preview</title>
+    <style>
+        #preview {
+            display: none;
+            margin-top: 10px;
+            max-width: 100%;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+<h1>Upload and Preview Image</h1>
+<form id="uploadForm">
+    <input type="file" id="fileInput" accept="image/*">
+    <button type="button" id="uploadBtn">Upload</button>
+</form>
+<img id="preview" alt="Image Preview">
+
+<script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', function() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('Please select an image to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch('/api/v1/upload', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Image uploaded successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading image.');
+            });
+    });
+</script>
+</body>
+</html>

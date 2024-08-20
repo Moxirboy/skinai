@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -46,6 +47,7 @@ func (c *chat) SendMessage(ctx *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(NewMessage)
 	res, err := c.model.GenerateResponse(ctx.Request.Context(), NewMessage.Request)
 	if err != nil {
 		ctx.JSON(200, gin.H{
