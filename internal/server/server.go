@@ -72,7 +72,7 @@ func (s Server) Run() error {
 	}
 	uc := usecase.New(pg, NewBot)
 	ai, err := ai2.NewDermato(os.Getenv("apikey"))
-	fmt.Println(conf)
+
 	ai.Configure(conf.Instruction, 0.7, 0.95, 40, 300)
 	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai)
 	conf.Port = os.Getenv("PORT")
