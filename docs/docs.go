@@ -180,6 +180,17 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "User email",
+                "parameters": [
+                    {
+                        "description": "User email",
+                        "name": "UserEmail",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserEmail"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success response",
@@ -693,6 +704,17 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UserEmail": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         },

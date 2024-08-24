@@ -89,6 +89,13 @@ definitions:
       username:
         type: string
     type: object
+  dto.UserEmail:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+    type: object
   dto.UserInfo:
     properties:
       date:
@@ -221,6 +228,13 @@ paths:
       consumes:
       - application/json
       description: Update user email
+      parameters:
+      - description: User email
+        in: body
+        name: UserEmail
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserEmail'
       produces:
       - application/json
       responses:
