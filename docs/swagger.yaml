@@ -89,15 +89,23 @@ definitions:
       username:
         type: string
     type: object
+  dto.UserEmail:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+    type: object
   dto.UserInfo:
     properties:
       date:
-        format: date-time
+        example: "2006-02-23"
         type: string
       firstname:
         example: Uyg'un'
         type: string
       gender:
+        example: transgender
         type: string
       id:
         type: integer
@@ -212,6 +220,21 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.UserInfo'
+      summary: User info
+      tags:
+      - users
+  /dashboard/middle/update-email:
+    post:
+      consumes:
+      - application/json
+      description: update User email
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserEmail'
       summary: User info
       tags:
       - users

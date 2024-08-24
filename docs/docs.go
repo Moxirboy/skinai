@@ -167,6 +167,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard/middle/update-email": {
+            "post": {
+                "description": "update User email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "User info",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserEmail"
+                        }
+                    }
+                }
+            }
+        },
         "/fact/answer-question": {
             "post": {
                 "description": "Receives a score and updates the user's points if the score is above a certain threshold",
@@ -654,19 +677,31 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UserEmail": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.UserInfo": {
             "type": "object",
             "properties": {
                 "date": {
                     "type": "string",
-                    "format": "date-time"
+                    "example": "2006-02-23"
                 },
                 "firstname": {
                     "type": "string",
                     "example": "Uyg'un'"
                 },
                 "gender": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "transgender"
                 },
                 "id": {
                     "type": "integer"
