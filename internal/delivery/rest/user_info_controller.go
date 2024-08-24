@@ -44,14 +44,14 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 	})
 }
 
-// CreateUserHandler godoc
-// @Summary User info
+// CreateUserEmailHandler godoc
+// @Summary User email
 // @Description update User email
 // @Tags users
 // @Accept  json
 // @Produce  json
 // @Params user_email body dto.UserEmail true "User email"
-// @Success 201 {object} dto.UserEmail
+// @Success 201
 // @Router /dashboard/middle/update-email [post]
 func (c controller) UpdateEmail(ctx *gin.Context) {
 	var User dto.UserEmail

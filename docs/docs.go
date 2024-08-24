@@ -179,13 +179,10 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "User info",
+                "summary": "User email",
                 "responses": {
                     "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserEmail"
-                        }
+                        "description": "Created"
                     }
                 }
             }
@@ -674,17 +671,6 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.UserEmail": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 }
             }
         },
