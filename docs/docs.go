@@ -723,7 +723,7 @@ const docTemplate = `{
             "properties": {
                 "date": {
                     "type": "string",
-                    "example": "2006-02-23"
+                    "example": "2005-05-22"
                 },
                 "firstname": {
                     "type": "string",
@@ -731,19 +731,22 @@ const docTemplate = `{
                 },
                 "gender": {
                     "type": "string",
-                    "example": "transgender"
+                    "example": "shemale"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "lastname": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Tursunov"
                 },
                 "skin_color": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 0
                 },
                 "skin_type": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 0
                 }
             }
         }

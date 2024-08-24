@@ -99,21 +99,24 @@ definitions:
   dto.UserInfo:
     properties:
       date:
-        example: "2006-02-23"
+        example: "2005-05-22"
         type: string
       firstname:
         example: Uyg'un'
         type: string
       gender:
-        example: transgender
+        example: shemale
         type: string
       id:
         type: integer
       lastname:
+        example: Tursunov
         type: string
       skin_color:
+        example: 0
         type: integer
       skin_type:
+        example: 0
         type: integer
     type: object
 host: web.binaryhood.uz
