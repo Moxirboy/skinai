@@ -50,6 +50,7 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 // @Tags users
 // @Accept  json
 // @Produce  json
+// @Params user_email body dto.UserEmail true "User email"
 // @Success 201 {object} dto.UserEmail
 // @Router /dashboard/middle/update-email [post]
 func (c controller) UpdateEmail(ctx *gin.Context) {
