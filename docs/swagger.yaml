@@ -105,7 +105,7 @@ definitions:
         example: Uyg'un'
         type: string
       gender:
-        example: shemale
+        example: male
         type: string
       id:
         type: integer

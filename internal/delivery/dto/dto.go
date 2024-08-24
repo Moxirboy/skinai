@@ -11,7 +11,7 @@ type UserInfo struct {
 	Lastname  string `json:"lastname" example:"Tursunov"`
 	SkinColor int    `json:"skin_color" example:"0"`
 	SkinType  int    `json:"skin_type" example:"0"`
-	Gender    string `json:"gender" example:"shemale"`
+	Gender    string `json:"gender" example:"male"`
 	Date      string `json:"date" example:"2005-05-22"`
 }
 

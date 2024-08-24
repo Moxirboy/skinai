@@ -731,7 +731,7 @@ const docTemplate = `{
                 },
                 "gender": {
                     "type": "string",
-                    "example": "shemale"
+                    "example": "male"
                 },
                 "id": {
                     "type": "integer"
