@@ -46,33 +46,43 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 
 // CreateUserEmailHandler godoc
 // @Summary User email
-// @Description update User email
+// @Description Update user email
 // @Tags users
 // @Accept  json
 // @Produce  json
 // @Params user_email body dto.UserEmail true "User email"
-// @Success 201
+// @Success 200 {object} map[string]interface{} "Success response"
+// @Failure 400 {object} map[string]string "Error response"
+// @Failure 406 {object} map[string]string "Invalid request payload"
 // @Router /dashboard/middle/update-email [post]
 func (c controller) UpdateEmail(ctx *gin.Context) {
-	var User dto.UserEmail
+	var user dto.UserEmail
 	s := sessions.Default(ctx)
-	User.ID = s.Get("userId").(int)
-	err := ctx.ShouldBindJSON(&User)
-	if err != nil {
+	user.ID = s.Get("userId").(int)
+
+	// Bind JSON input to the struct
+	if err := ctx.ShouldBindJSON(&user); err != nil {
 		c.bot.SendErrorNotification(err)
 		ctx.JSON(406, gin.H{
-			"Message": "Invalid credentials",
+			"Message": "Invalid request payload",
 		})
 		return
 	}
-	id, err := c.usecase.UpdateEmail(User)
 
+	// Update email
+	id, err := c.usecase.UpdateEmail(user)
 	if err != nil {
 		c.bot.SendErrorNotification(err)
-		ctx.String(400, "internal error")
+		ctx.JSON(400, gin.H{
+			"Message": "Internal error",
+		})
 		return
 	}
-	ctx.String(200, "id: ", id)
+
+	// Return the ID of the updated email
+	ctx.JSON(200, gin.H{
+		"id": id,
+	})
 }
 
 func (c controller) UpdateUserInfo(ctx *gin.Context) {

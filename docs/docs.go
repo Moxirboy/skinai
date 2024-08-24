@@ -169,7 +169,7 @@ const docTemplate = `{
         },
         "/dashboard/middle/update-email": {
             "post": {
-                "description": "update User email",
+                "description": "Update user email",
                 "consumes": [
                     "application/json"
                 ],
@@ -181,8 +181,30 @@ const docTemplate = `{
                 ],
                 "summary": "User email",
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Error response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }

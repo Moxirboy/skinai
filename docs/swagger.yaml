@@ -220,12 +220,27 @@ paths:
     post:
       consumes:
       - application/json
-      description: update User email
+      description: Update user email
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: Success response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Error response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "406":
+          description: Invalid request payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: User email
       tags:
       - users
