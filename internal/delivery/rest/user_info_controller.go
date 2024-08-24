@@ -50,7 +50,7 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Params user_email body dto.UserEmail true "User email"
+// @Params UserEmail body dto.UserEmail true "User email"
 // @Success 200 {object} map[string]interface{} "Success response"
 // @Failure 400 {object} map[string]string "Error response"
 // @Failure 406 {object} map[string]string "Invalid request payload"
