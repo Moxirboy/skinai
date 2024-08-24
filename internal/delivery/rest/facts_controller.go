@@ -233,7 +233,7 @@ func (f facts) upload(c *gin.Context) {
 		return
 	}
 	ID, err := strconv.Atoi(id)
-	err = f.usecase.UpdateImage(c.Request.Context(), ID, filePath)
+	err = f.usecase.UpdateImage(c.Request.Context(), ID, "https://web.binaryhood.uz/api/v1/fact/get-image/?filepath="+filePath)
 	// Return the ID, filename, and URL as JSON
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to saving file"})
