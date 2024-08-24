@@ -25,7 +25,7 @@ func (u usecase) UpdateInfo(user dto.UserInfo) (id int, err error) {
 			return 0, domain.Err("Coudn`t update Name")
 		}
 	}
-	
+
 	if !Validator(userInfo.Gender) {
 		id, err = u.repo.UpdateGender(*userInfo)
 		if err != nil {
@@ -52,8 +52,8 @@ func (u usecase) GetUserInfo(userId int) (user dto.UserInfo, err error) {
 	user = *u.f.ParseUserInfoToModel(userInfo)
 	return user, nil
 }
-func (u usecase) GetName(userId int,Error error) (name string, err error) {
-	if Error!=nil{
+func (u usecase) GetName(userId int, Error error) (name string, err error) {
+	if Error != nil {
 		u.bot.SendErrorNotification(err)
 		return "", errors.New("no info")
 	}
@@ -72,4 +72,8 @@ func (u usecase) GetName(userId int,Error error) (name string, err error) {
 	}
 	user := *u.f.ParseUserInfoToModel(userInfo)
 	return user.Firstname, nil
+}
+
+func (u usecase) UpdateEmail(user dto.UserEmail) (id int, err error) {
+	return u.repo.UpdateEmail(user)
 }

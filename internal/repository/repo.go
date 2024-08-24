@@ -53,6 +53,7 @@ type Repo interface {
 	UpdatePremium(userId interface{}) error
 	CreatePoint(userId interface{}) (err error)
 	GetPoint(userID interface{}) (value int, err error)
+	UpdateEmail(user dto.UserEmail) (id int, err error)
 }
 
 func NewRepo(db *sql.DB, bot Bot.Bot) Repo {

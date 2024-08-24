@@ -37,6 +37,7 @@ type Usecase interface {
 	IsPremium(userId interface{}) (int, error)
 	UpdatePremium(userId interface{}) error
 	GetPoint(userID interface{}) (value int, err error)
+	UpdateEmail(user dto.UserEmail) (id int, err error)
 }
 type INewsUseCase interface {
 	GetAll(ctx context.Context, query utils.PaginationQuery) (news *domain.NewsList, err error)

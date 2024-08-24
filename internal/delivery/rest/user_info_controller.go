@@ -43,6 +43,37 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 		"Info id": id,
 	})
 }
+
+// CreateUserHandler godoc
+// @Summary User info
+// @Description update User email
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} dto.UserEmail
+// @Router /dashboard/middle/update-email [post]
+func (c controller) UpdateEmail(ctx *gin.Context) {
+	var User dto.UserEmail
+	s := sessions.Default(ctx)
+	User.ID = s.Get("userId").(int)
+	err := ctx.ShouldBindJSON(&User)
+	if err != nil {
+		c.bot.SendErrorNotification(err)
+		ctx.JSON(406, gin.H{
+			"Message": "Invalid credentials",
+		})
+		return
+	}
+	id, err := c.usecase.UpdateEmail(User)
+
+	if err != nil {
+		c.bot.SendErrorNotification(err)
+		ctx.String(400, "internal error")
+		return
+	}
+	ctx.String(200, "id: ", id)
+}
+
 func (c controller) UpdateUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
 	s := sessions.Default(ctx)

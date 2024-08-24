@@ -46,6 +46,7 @@ func NewController(g *gin.RouterGroup, usecase usecase.Usecase, bot Bot.Bot, req
 			middle.GET("/get-point", controller.GetPoint)
 			middle.GET("/logout", controller.Logout)
 			middle.GET("/deleteAccount", controller.DeleteAccount)
+			middle.POST("/update-email", controller.UpdateEmail)
 		}
 		{
 		}

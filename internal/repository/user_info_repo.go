@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/domain"
 	"time"
 )
@@ -91,6 +92,18 @@ func (r repo) UpdateGender(user domain.UserInfo) (id int, err error) {
 	update user_info set gender=$2,updated_at=$3 where user_id=$1 returning id
 	`
 	err = r.db.QueryRow(query, user.Id, user.Gender, user.UpdatedAt).Scan(&id)
+	if err != nil {
+		r.Bot.SendErrorNotification(err)
+		return 0, domain.ErrCouldNotScan
+	}
+	return id, nil
+}
+
+func (r repo) UpdateEmail(user dto.UserEmail) (id int, err error) {
+	query := `
+	update users set email=$2 where id=$1 returning id
+	`
+	err = r.db.QueryRow(query, user.ID, user.Email).Scan(&id)
 	if err != nil {
 		r.Bot.SendErrorNotification(err)
 		return 0, domain.ErrCouldNotScan

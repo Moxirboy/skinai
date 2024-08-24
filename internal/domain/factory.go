@@ -2,6 +2,7 @@ package domain
 
 import (
 	"testDeployment/internal/delivery/dto"
+	"testDeployment/pkg/utils"
 	"time"
 )
 
@@ -45,7 +46,7 @@ func (f Factory) ParseModelToUserInfo(u dto.UserInfo) *UserInfo {
 		SkinColor: u.SkinColor,
 		SkinType:  u.SkinType,
 		UpdatedAt: time.Now(),
-		Date:      u.Date,
+		Date:      utils.ParseDateString(u.Date),
 	}
 }
 func (f Factory) ParseUserInfoToModel(u UserInfo) *dto.UserInfo {
@@ -55,6 +56,7 @@ func (f Factory) ParseUserInfoToModel(u UserInfo) *dto.UserInfo {
 		Gender:    u.Gender,
 		SkinColor: u.SkinColor,
 		SkinType:  u.SkinType,
-		Date:      u.Date,
+		Date:      utils.FormatTimeToRFC3339(u.Date),
 	}
+
 }
