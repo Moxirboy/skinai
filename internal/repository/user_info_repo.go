@@ -46,7 +46,10 @@ func (r repo) CreateInfo(user domain.UserInfo) (id int, err error) {
 }
 func (r repo) GetUserInfo(userId int) (user domain.UserInfo, err error) {
 	query := `
-	select id, firstname,lastname,skin_color,skin_type,gender,birth from user_info where user_id=$1
+SELECT id, firstname, lastname, skin_color, skin_type, gender, birth 
+FROM user_info 
+WHERE user_id=$1 
+ORDER BY id DESC;
 	`
 	err = r.db.QueryRow(query, userId).Scan(
 		&user.Id,
