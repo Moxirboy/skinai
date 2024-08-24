@@ -144,7 +144,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboard/showUserInfo": {
+        "/dashboard/middle/showUserInfo": {
             "get": {
                 "description": "Get User Info",
                 "consumes": [

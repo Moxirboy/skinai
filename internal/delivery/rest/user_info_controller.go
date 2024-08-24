@@ -72,7 +72,7 @@ func (c controller) UpdateUserInfo(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 201 {object} dto.UserInfo
-// @Router /dashboard/showUserInfo [get]
+// @Router /dashboard/middle/showUserInfo [get]
 func (c controller) ShowUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
 	s := sessions.Default(ctx)

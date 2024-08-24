@@ -200,7 +200,7 @@ paths:
       summary: get premium
       tags:
       - users
-  /dashboard/showUserInfo:
+  /dashboard/middle/showUserInfo:
     get:
       consumes:
       - application/json
