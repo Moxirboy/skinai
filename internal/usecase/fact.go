@@ -86,3 +86,6 @@ func (u factUseCase) GetQuestion(ctx context.Context, id int, offset int) (dto.F
 func (u factUseCase) UpdatePoint(ctx context.Context, id int) (int, error) {
 	return u.repo.UpdatePoint(ctx, id)
 }
+func (u factUseCase) UpdateImage(ctx context.Context, id int, path string) error {
+	return u.repo.UpdateImage(ctx, id, path)
+}

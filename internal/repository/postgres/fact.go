@@ -62,26 +62,32 @@ func (r fact) GetFacts(ctx context.Context) ([]dto.Fact, error) {
 		ctx,
 		GetFacts,
 	)
+	defer row.Close()
 	if err != nil {
-		row.Close()
 		return nil, err
 	}
 	facts := []dto.Fact{}
 	for row.Next() {
 		var fact dto.Fact
+		var image sql.NullString
 		err := row.Scan(
 			&fact.Id,
 			&fact.Title,
 			&fact.Content,
+			&image,
 			&fact.NumberOfQuestion,
 		)
 		if err != nil {
 			row.Close()
 			return nil, err
 		}
+		if image.Valid {
+			fact.Image = image.String
+		} else {
+			fact.Image = "" // or handle the NULL case as needed
+		}
 		facts = append(facts, fact)
 	}
-	row.Close()
 	return facts, nil
 }
 
@@ -135,4 +141,16 @@ func (r fact) UpdatePoint(ctx context.Context, id int) (int, error) {
 		return 0, err
 	}
 	return score, nil
+}
+func (r fact) UpdateImage(ctx context.Context, id int, path string) error {
+
+	_, err := r.db.ExecContext(ctx,
+		UpdateImage,
+		id,
+		path,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

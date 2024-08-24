@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"fmt"
 	"github.com/caarlos0/env/v6"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -55,7 +54,6 @@ func Configuration() *Config {
 	if err := env.Parse(&instance); err != nil {
 		panic(err)
 	}
-	fmt.Println(instance)
 	return &instance
 
 }

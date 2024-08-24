@@ -67,6 +67,7 @@ type IFactUseCase interface {
 	) ([]dto.Fact, error)
 	GetQuestion(ctx context.Context, id int, offset int) (dto.FactQuestions, error)
 	UpdatePoint(ctx context.Context, id int) (int, error)
+	UpdateImage(ctx context.Context, id int, path string) error
 }
 
 func NewUserUsecase(repo repository.Repo, bot Bot.Bot) Usecase {

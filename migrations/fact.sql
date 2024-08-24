@@ -2,6 +2,7 @@ create table fact (
     id int autoincrement,
     title text,
     content text,
+    image text,
     number_question int
 );
 

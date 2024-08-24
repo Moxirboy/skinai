@@ -18,6 +18,8 @@ definitions:
         type: string
       id:
         type: integer
+      image:
+        type: string
       number_of_question:
         type: integer
       title:
@@ -70,11 +72,19 @@ definitions:
           $ref: '#/definitions/dto.Item'
         type: array
     type: object
+  dto.Score:
+    properties:
+      number_of_question:
+        type: integer
+      score:
+        type: integer
+    type: object
   dto.User:
     properties:
       email:
         type: string
       password:
+        format: password
         type: string
       username:
         type: string
@@ -85,6 +95,7 @@ definitions:
         format: date-time
         type: string
       firstname:
+        example: Uyg'un'
         type: string
       gender:
         type: string
@@ -97,7 +108,7 @@ definitions:
       skin_type:
         type: integer
     type: object
-host: web.binaryhood.uz
+host: localhost:8080
 info:
   contact:
     email: support@swagger.io
@@ -204,43 +215,25 @@ paths:
       summary: User info
       tags:
       - users
-  /fact/AnswerQuestion:
-    get:
+  /fact/answer-question:
+    post:
       consumes:
       - application/json
-      description: Retrieve the ID and offset from the query parameters.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Get ID and Offset
-      tags:
-      - fact
-  /fact/GetQuestion:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve the ID and offset from the query parameters.
+      description: Receives a score and updates the user's points if the score is
+        above a certain threshold
       parameters:
-      - default: '"default_id"'
-        description: ID
-        in: query
-        name: id
-        type: string
-      - default: '"0"'
-        description: Offset
-        in: query
-        name: offset
-        type: string
+      - description: Score details
+        in: body
+        name: score
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Score'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/dto.FactQuestions'
-      summary: Get ID and Offset
+      summary: Answer a question and update points
       tags:
       - fact
   /fact/create:
@@ -289,6 +282,59 @@ paths:
       summary: Create a fact question
       tags:
       - fact
+  /fact/get-image/:
+    get:
+      description: Retrieves an image by its file path
+      parameters:
+      - description: File path
+        in: query
+        name: filepath
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            type: message
+        "404":
+          description: Not Found
+          schema:
+            type: message
+      summary: Get an image
+      tags:
+      - image
+  /fact/get-question:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the ID and offset from the query parameters.
+      parameters:
+      - default: '"default_id"'
+        description: ID
+        in: query
+        name: id
+        type: string
+      - default: '"0"'
+        description: Offset
+        in: query
+        name: offset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FactQuestions'
+      summary: Get ID and Offset
+      tags:
+      - fact
   /fact/getFact:
     get:
       description: Get a 5 facts
@@ -305,6 +351,36 @@ paths:
       summary: Get a fact
       tags:
       - fact
+  /fact/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads an image with an ID
+      parameters:
+      - description: Image ID
+        in: formData
+        name: id
+        required: true
+        type: string
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: image
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Upload an image
+      tags:
+      - image
   /login:
     post:
       consumes:

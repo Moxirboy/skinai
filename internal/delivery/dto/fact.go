@@ -4,6 +4,7 @@ type Fact struct {
 	Id               int    `json:"id"`
 	Title            string `json:"title"`
 	Content          string `json:"content"`
+	Image            string `json:"image"`
 	NumberOfQuestion int    `json:"number_of_question"`
 }
 

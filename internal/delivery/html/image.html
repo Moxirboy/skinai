@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+            border: 4px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .image-preview h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Upload Image</h1>
+<form id="uploadForm">
+    <label for="imageFile">Select Image:</label>
+    <input type="file" id="imageFile" name="image" accept="image/*" required>
+    <button type="submit">Upload</button>
+</form>
+
+<div class="image-preview" id="imagePreview"></div>
+
+<script>
+    document.getElementById('imageFile').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.innerHTML = `<h2>Image Preview</h2><img src="${e.target.result}" alt="Image Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        const fileInput = document.getElementById('imageFile');
+        const file = fileInput.files[0];
+        const id = localStorage.getItem('factId');
+
+        formData.append('id', id);
+        formData.append('image', file);
+
+        fetch('/api/v1/fact/upload', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                window.location.href='/api/v1/create/fact/question';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+</body>
+</html>

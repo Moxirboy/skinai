@@ -3,7 +3,10 @@ package rest
 import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/usecase"
@@ -22,8 +25,10 @@ func NewFactsController(
 	router.POST("/create", handler.NewFact)
 	router.POST("/createQuestions", handler.CreateQuestions)
 	router.GET("/getFact", handler.GetFact)
-	router.GET("/GetQuestion", handler.GetQuestion)
-	router.GET("/AnswerQuestion", handler.AnswerQuestion)
+	router.GET("/get-question", handler.GetQuestion)
+	router.POST("/answer-question", handler.AnswerQuestion)
+	router.POST("/upload", handler.upload)
+	router.GET("/get-image", handler.GetImage)
 }
 
 // CreateFactHandler godoc
@@ -114,7 +119,7 @@ func (c facts) GetFact(ctx *gin.Context) {
 // @Param id query string false "ID" default("default_id")
 // @Param offset query string false "Offset" default("0")
 // @Success 200 {object} dto.FactQuestions
-// @Router /fact/GetQuestion [get]
+// @Router /fact/get-question [get]
 func (c facts) GetQuestion(ctx *gin.Context) {
 	// Retrieve the 'id' and 'offset' query parameters
 	idStr := ctx.Query("id")
@@ -135,17 +140,20 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 		id,
 		offset,
 	) // Respond with the extracted parameters
-
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
 	ctx.JSON(http.StatusOK, facts)
 }
 
-// @Summary Get ID and Offset
-// @Description Retrieve the ID and offset from the query parameters.
+// @Summary Answer a question and update points
+// @Description Receives a score and updates the user's points if the score is above a certain threshold
 // @Tags fact
-// @Accept  json
-// @Produce  json
+// @Accept json
+// @Produce json
+// @Param score body dto.Score true "Score details"
 // @Success 200
-// @Router /fact/AnswerQuestion [get]
+// @Router /fact/answer-question [post]
 func (c facts) AnswerQuestion(ctx *gin.Context) {
 	s := sessions.Default(ctx)
 	score := dto.Score{}
@@ -174,4 +182,90 @@ func (c facts) AnswerQuestion(ctx *gin.Context) {
 			"score": bonus,
 		},
 	)
+}
+
+// @Summary Upload an image
+// @Description Uploads an image with an ID
+// @Tags image
+// @Accept multipart/form-data
+// @Produce json
+// @Param id formData string true "Image ID"
+// @Param image formData file true "Image file"
+// @Success 200 {string} string "image"
+// @Failure 400
+// @Failure 500
+// @Router /fact/upload [post]
+func (f facts) upload(c *gin.Context) {
+	// Get the ID from the form data
+	id := c.PostForm("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
+		return
+	}
+
+	// Parse the multipart form to get the image
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get image from request"})
+		return
+	}
+	defer file.Close()
+
+	filename := id + filepath.Ext(header.Filename)
+	filePath := filepath.Join("uploads", filename)
+
+	// Ensure the uploads directory exists
+	if _, err := os.Stat("uploads"); os.IsNotExist(err) {
+		os.Mkdir("uploads", os.ModePerm)
+	}
+
+	// Write the file to the local filesystem
+	out, err := os.Create(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save file"})
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write file"})
+		return
+	}
+	ID, err := strconv.Atoi(id)
+	err = f.usecase.UpdateImage(c.Request.Context(), ID, filePath)
+	// Return the ID, filename, and URL as JSON
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to saving file"})
+		return
+	}
+	c.JSON(http.StatusOK, "image")
+}
+
+// @Summary Get an image
+// @Description Retrieves an image by its file path
+// @Tags image
+// @Produce json
+// @Param filepath query string true "File path"
+// @Success 200 {file} file
+// @Failure 400 message invalid
+// @Failure 404 message not found file
+// @Router /fact/get-image/ [get]
+func (f facts) GetImage(c *gin.Context) {
+	filePath := c.Query("filepath")
+
+	// Sanitize the file path to prevent directory traversal attacks
+	if filePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file path"})
+		return
+	}
+
+	// Check if the file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	// Serve the file
+	c.File(filePath)
 }

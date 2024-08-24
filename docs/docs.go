@@ -167,9 +167,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/fact/AnswerQuestion": {
-            "get": {
-                "description": "Retrieve the ID and offset from the query parameters.",
+        "/fact/answer-question": {
+            "post": {
+                "description": "Receives a score and updates the user's points if the score is above a certain threshold",
                 "consumes": [
                     "application/json"
                 ],
@@ -179,49 +179,21 @@ const docTemplate = `{
                 "tags": [
                     "fact"
                 ],
-                "summary": "Get ID and Offset",
+                "summary": "Answer a question and update points",
+                "parameters": [
+                    {
+                        "description": "Score details",
+                        "name": "score",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Score"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/fact/GetQuestion": {
-            "get": {
-                "description": "Retrieve the ID and offset from the query parameters.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fact"
-                ],
-                "summary": "Get ID and Offset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "\"default_id\"",
-                        "description": "ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "\"0\"",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.FactQuestions"
-                        }
                     }
                 }
             }
@@ -296,6 +268,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/fact/get-image/": {
+            "get": {
+                "description": "Retrieves an image by its file path",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "image"
+                ],
+                "summary": "Get an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "filepath",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "message"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "message"
+                        }
+                    }
+                }
+            }
+        },
+        "/fact/get-question": {
+            "get": {
+                "description": "Retrieve the ID and offset from the query parameters.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fact"
+                ],
+                "summary": "Get ID and Offset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "\"default_id\"",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"0\"",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FactQuestions"
+                        }
+                    }
+                }
+            }
+        },
         "/fact/getFact": {
             "get": {
                 "description": "Get a 5 facts",
@@ -316,6 +368,51 @@ const docTemplate = `{
                                 "$ref": "#/definitions/dto.Fact"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/fact/upload": {
+            "post": {
+                "description": "Uploads an image with an ID",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "image"
+                ],
+                "summary": "Upload an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Image ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "image",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -448,6 +545,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image": {
+                    "type": "string"
+                },
                 "number_of_question": {
                     "type": "integer"
                 },
@@ -528,6 +628,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Score": {
+            "type": "object",
+            "properties": {
+                "number_of_question": {
+                    "type": "integer"
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.User": {
             "type": "object",
             "properties": {
@@ -535,7 +646,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "password"
                 },
                 "username": {
                     "type": "string"
@@ -550,7 +662,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "firstname": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Uyg'un'"
                 },
                 "gender": {
                     "type": "string"
@@ -575,7 +688,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "web.binaryhood.uz",
+	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Skin Ai Swagger",

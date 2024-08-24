@@ -18,7 +18,6 @@ func NewPostgresConfig(config *Config) (*sql.DB, error) {
 		config.Postgres.Port,
 		config.Postgres.Database,
 	)
-	fmt.Println(connStr)
 	instance, err := sql.Open("pgx", connStr)
 	if err != nil {
 		panic(err)

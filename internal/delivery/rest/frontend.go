@@ -10,5 +10,6 @@ func NewFrontend(
 	g.Static("/file", "internal/delivery/html")
 	g.StaticFile("/create/fact", "internal/delivery/html/fact.html")
 	g.StaticFile("/create/fact/question", "internal/delivery/html/questions.html")
+	g.StaticFile("/create/fact/upload", "internal/delivery/html/image.html")
 
 }

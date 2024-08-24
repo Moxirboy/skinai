@@ -11,11 +11,12 @@ ORDER BY RANDOM()
 LIMIT 1;`
 	GetFactById = `SELECT title, content, number_question
 FROM facts where id=$1`
-	GetFacts = `SELECT id, title, content, number_question
+	GetFacts = `SELECT id, title, content,image, number_question
 FROM facts
 ORDER BY RANDOM()
 LIMIT 5;`
 	GetQuestion = `select id,question from question where fact_id=$1 limit 1 OFFSET $2 `
 	GetChoices  = `select content,is_true from choices where question_id=$1`
-	UpdatePoint = `update table bonus set score =score+1 where user_id=$1 returning score`
+	UpdatePoint = `update  bonus set score =score+1 where user_id=$1 returning score`
+	UpdateImage = ` update facts set image=$2 where id=$1`
 )
