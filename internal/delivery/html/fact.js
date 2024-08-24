@@ -3,7 +3,7 @@ const submitBtn = document.getElementById('next');
 
 submitBtn.addEventListener("click", function() {
         const factTitle = document.querySelector(".fact input").value;
-        const content = document.querySelector(".content input").value;
+        const content = document.querySelector(".content textarea").value;
         const numberOfQuestions = document.querySelector(".number_question input").value;
 
         console.log("Fact title:", factTitle);
