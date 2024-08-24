@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "web.binaryhood.uz",
     "basePath": "/api/v1",
     "paths": {
         "/chat/generate": {

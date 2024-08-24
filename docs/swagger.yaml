@@ -108,7 +108,7 @@ definitions:
       skin_type:
         type: integer
     type: object
-host: localhost:8080
+host: web.binaryhood.uz
 info:
   contact:
     email: support@swagger.io
