@@ -7,6 +7,7 @@ import (
 	"testDeployment/pkg/Bot"
 	ai2 "testDeployment/pkg/ai"
 
+	config "testDeployment/internal/common/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,7 @@ func SetUp(
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
 	model *ai2.Dermato,
+	config config.Config,
 ) {
 	SetUpHandlerV1(
 		g.Group("/api/v1"),
@@ -23,6 +25,7 @@ func SetUp(
 		bot,
 		request,
 		model,
+		config,
 	)
 
 }
@@ -32,6 +35,7 @@ func SetUpHandlerV1(
 	bot Bot.Bot,
 	request request.CustomJSONRequester,
 	model *ai2.Dermato,
+	config config.Config,
 ) {
 	rest.NewFrontend(
 		group,
@@ -60,6 +64,7 @@ func SetUpHandlerV1(
 	rest.NewChat(
 		group,
 		model,
+		config,
 	)
 
 }

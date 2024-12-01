@@ -59,6 +59,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/upload": {
+            "post": {
+                "description": "This endpoint allows you to upload an image and optionally provide a prompt for AI image generation.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "images"
+                ],
+                "summary": "Upload an image and generate a response",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image to upload",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Prompt for the image generation",
+                        "name": "prompt",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response: generated image response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: Invalid form data or no image uploaded",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "error: Could not open or read file / AI generation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/fillUserInfo": {
             "post": {
                 "description": "User Info with the input attributes",

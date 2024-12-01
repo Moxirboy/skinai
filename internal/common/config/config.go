@@ -45,6 +45,7 @@ type Cookie struct {
 
 type Ai struct {
 	Instruction string `env:"INSTRUCTION"`
+	Prompt      string `env:"PROMPT"`
 }
 
 var instance Config

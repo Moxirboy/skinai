@@ -72,9 +72,13 @@ func (s Server) Run() error {
 	}
 	uc := usecase.New(pg, NewBot)
 	ai, err := ai2.NewDermato(os.Getenv("apikey"))
-
+	if err != nil {
+		NewBot.SendErrorNotification(err)
+		fmt.Println(err)
+		return err
+	}
 	ai.Configure(conf.Instruction, 0.7, 0.95, 40, 300)
-	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai)
+	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf)
 	conf.Port = os.Getenv("PORT")
 	if conf.Port == "" {
 		conf.Port = "8080"

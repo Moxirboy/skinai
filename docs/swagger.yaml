@@ -156,6 +156,43 @@ paths:
       summary: send message to ai
       tags:
       - message
+  /chat/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: This endpoint allows you to upload an image and optionally provide
+        a prompt for AI image generation.
+      parameters:
+      - description: Image to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Prompt for the image generation
+        in: formData
+        name: prompt
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'response: generated image response'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: Invalid form data or no image uploaded'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: 'error: Could not open or read file / AI generation error'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload an image and generate a response
+      tags:
+      - images
   /dashboard/fillUserInfo:
     post:
       consumes:
