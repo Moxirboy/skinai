@@ -119,7 +119,7 @@ definitions:
         example: 0
         type: integer
     type: object
-host: web.binaryhood.uz
+host: skinai.up.railway.app/
 info:
   contact:
     email: support@swagger.io
