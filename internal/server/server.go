@@ -78,6 +78,7 @@ func (s Server) Run() error {
 		return err
 	}
 	ai.Configure(conf.Instruction, 0.7, 0.95, 40, 300)
+	conf.Ai.Prompt=os.Getenv("PROMPT")
 	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf)
 	conf.Port = os.Getenv("PORT")
 	if conf.Port == "" {
