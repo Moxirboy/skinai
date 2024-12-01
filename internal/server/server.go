@@ -71,6 +71,7 @@ func (s Server) Run() error {
 		return err
 	}
 	uc := usecase.New(pg, NewBot)
+	conf.Instruction = os.Getenv("INSTRUCTION")
 	ai, err := ai2.NewDermato(os.Getenv("apikey"))
 	if err != nil {
 		NewBot.SendErrorNotification(err)
