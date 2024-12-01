@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "skinai.up.railway.app/",
+    "host": "skinai.up.railway.app",
     "basePath": "/api/v1",
     "paths": {
         "/chat/generate": {
