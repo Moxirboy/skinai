@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
+
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
@@ -13,9 +15,7 @@ type Dermato struct {
 	model  *genai.GenerativeModel
 }
 
-func NewDermato(
-	apiKey string,
-) (*Dermato, error) {
+func NewDermato(apiKey string) (*Dermato, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -25,58 +25,90 @@ func NewDermato(
 }
 
 func (d *Dermato) Configure(instruction string, temp, topP float32, topK, maxTokens int32) {
-	d.model = d.client.GenerativeModel("gemini-1.5-flash")
-	d.model.SetTemperature(temp)
-	d.model.SetTopP(topP)
-	d.model.SetTopK(topK)
-	d.model.SetMaxOutputTokens(maxTokens)
-	d.model.SystemInstruction = genai.NewUserContent(genai.Text(instruction))
+	m := d.client.GenerativeModel("gemini-2.5-flash-lite")
+	m.SetTemperature(temp)
+	m.SetTopP(topP)
+	m.SetTopK(topK)
+	m.SetMaxOutputTokens(maxTokens)
+	m.SystemInstruction = genai.NewUserContent(genai.Text(instruction))
+	d.model = m
 }
+
 func (d *Dermato) GenerateResponse(ctx context.Context, req string) (string, error) {
-	resp, err := d.model.GenerateContent(ctx, genai.Text(req))
-	if err != nil {
-		return "", fmt.Errorf("failed to generate response: %w", err)
-	}
-	res := genai.Text(resp.Candidates[0].Content.Parts[0].(genai.Text))
-
-	return string(res), nil
-}
-
-func (d *Dermato) GenerateImageResponse(ctx context.Context, imageData []byte, prompt string) (string, error) {
-	// Validate inputs
 	if d.model == nil {
 		return "", fmt.Errorf("model not configured. Call Configure() first")
 	}
 
+	resp, err := d.model.GenerateContent(ctx, genai.Text(req))
+	if err != nil {
+		return "", fmt.Errorf("failed to generate response: %w", err)
+	}
+
+	text, err := extractFirstCandidateText(resp)
+	if err != nil {
+		return "", err
+	}
+
+	return text, nil
+}
+
+func (d *Dermato) GenerateImageResponse(ctx context.Context, imageData []byte, prompt string) (string, error) {
+	if d.model == nil {
+		return "", fmt.Errorf("model not configured. Call Configure() first")
+	}
 	if len(imageData) == 0 {
 		return "", fmt.Errorf("no image data provided")
 	}
 
-	// Create image part
-	imagePart := genai.ImageData(http.DetectContentType(imageData), imageData)
+	ct := http.DetectContentType(imageData) // "image/jpeg"
+parts := strings.Split(ct, "/")
+format := parts[len(parts)-1]           // "jpeg"
 
-	// Generate content with image and optional text prompt
+imagePart := genai.ImageData(format, imageData)
+
 	resp, err := d.model.GenerateContent(ctx, imagePart, genai.Text(prompt))
 	if err != nil {
 		return "", fmt.Errorf("failed to generate image response: %w", err)
 	}
 
-	// Extract response text
-	if len(resp.Candidates) == 0 {
-		return "", fmt.Errorf("no response candidates generated for image")
+	text, err := extractFirstCandidateText(resp)
+	if err != nil {
+		return "", err
 	}
 
-	var responseText string
-	for _, part := range resp.Candidates[0].Content.Parts {
+	return text, nil
+}
+
+
+
+// helper to keep both methods consistent
+func extractFirstCandidateText(resp *genai.GenerateContentResponse) (string, error) {
+	if resp == nil {
+		return "", fmt.Errorf("empty response from model")
+	}
+
+	if len(resp.Candidates) == 0 {
+		return "", fmt.Errorf("no response candidates generated")
+	}
+
+	cand := resp.Candidates[0]
+	if cand == nil || cand.Content == nil {
+		return "", fmt.Errorf("response candidate has no content")
+	}
+
+	var b strings.Builder
+	for _, part := range cand.Content.Parts {
 		switch v := part.(type) {
 		case genai.Text:
-			responseText += string(v)
+			b.WriteString(string(v))
+		// you can add other cases here if you want to support more types
 		}
 	}
 
-	if responseText == "" {
-		return "", fmt.Errorf("generated image response is empty")
+	out := strings.TrimSpace(b.String())
+	if out == "" {
+		return "", fmt.Errorf("response candidate has no text parts")
 	}
 
-	return responseText, nil
+	return out, nil
 }

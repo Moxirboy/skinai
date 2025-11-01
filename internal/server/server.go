@@ -45,10 +45,14 @@ func (s Server) Run() error {
 	r.Use(sessions.Sessions(conf.Sessions, store))
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  []string{"*"},                                       // Set allowed origins, "*" allows all origins
-		AllowMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Allowed methods
-		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"}, // Allowed headers
-		ExposeHeaders: []string{"Content-Length"},
+		AllowOriginFunc: func(origin string) bool {
+			return true // Allow all origins
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * 3600, // Cache preflight requests for 12 hours
 	}))
 	url := ginSwagger.URL("swagger/doc.json")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
@@ -72,7 +76,7 @@ func (s Server) Run() error {
 	}
 	uc := usecase.New(pg, NewBot)
 	conf.Instruction = os.Getenv("INSTRUCTION")
-	ai, err := ai2.NewDermato(os.Getenv("apikey"))
+	ai, err := ai2.NewDermato(os.Getenv("GEMINI_API_KEY"))
 	if err != nil {
 		NewBot.SendErrorNotification(err)
 		fmt.Println(err)
