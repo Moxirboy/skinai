@@ -1,19 +1,29 @@
-version: '3.8'
-
 services:
-      migrate:
-          image: migrate/migrate
-          volumes:
-            - .:/app
-          working_dir: /app
-          env_file:
-            - .env
-          profiles:
-            - donotstart
-      db:
-        image: postgres:latest
-        environment:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: skinai
-        ports:
-          - "5432:5432"
+  app:
+    build: .
+    container_name: go_app
+    env_file:
+      - .env
+    environment:
+      - PORT=8080
+      - TELEGRAM_BOT_TOKEN=6497806085:AAE7RRULTJARZ5YTP163We6ri4mnSK1OHBk
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    ports:
+      - "8080:8080"   # optional (ngrok doesn't need it, but it's handy locally)
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    depends_on:
+      - app
+    environment:
+      - NGROK_AUTHTOKEN=2WntSFDujuhFC6UGSvqUPpFUqHW_2QGCfcuBrC1J5uHkmmLBL
+    command:
+      [
+        "http",
+        "--domain=easy-wallaby-strangely.ngrok-free.app",
+        "app:8080",
+        "--log=stdout"
+      ]
+    ports:
+      - "4040:4040"   # ngrok inspector UI
