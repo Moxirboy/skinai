@@ -36,6 +36,7 @@ func NewServer(
 func (s Server) Run() error {
 
 	r := gin.New()
+	r.SetTrustedProxies(nil) // Trust all proxies (Railway reverse proxy) for real client IP
 	conf := configs.Configuration()
 	store := cookie.NewStore([]byte(conf.Token))
 	store.Options(sessions.Options{
@@ -121,13 +122,10 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 		}
 
 		// ── Real client IP (proxy-aware) ──
+		// With SetTrustedProxies(nil), Gin's ClientIP() reads X-Forwarded-For automatically.
+		// We still check extra headers as fallback for CDNs like Cloudflare.
 		clientIP := c.ClientIP()
-		if realIP := c.GetHeader("X-Real-IP"); realIP != "" {
-			clientIP = realIP
-		} else if xff := c.GetHeader("X-Forwarded-For"); xff != "" {
-			parts := strings.SplitN(xff, ",", 2)
-			clientIP = strings.TrimSpace(parts[0])
-		} else if cfIP := c.GetHeader("CF-Connecting-IP"); cfIP != "" {
+		if cfIP := c.GetHeader("CF-Connecting-IP"); cfIP != "" {
 			clientIP = cfIP
 		}
 
@@ -161,6 +159,10 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 		}
 
 		// ── Build the log message ──
+		// Escape underscores in dynamic strings to prevent Telegram Markdown from breaking
+		escPath := escapeMD(path)
+		escIP := escapeMD(clientIP)
+
 		var sb strings.Builder
 		sb.WriteString(fmt.Sprintf(
 			"%s *%s* `%s`\n"+
@@ -169,9 +171,9 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 				"├ %s\n"+
 				"├ 🖥 Browser: `%s`\n"+
 				"├ 💻 OS: `%s`",
-			statusEmoji, method, path,
+			statusEmoji, method, escPath,
 			statusCode, duration.Round(time.Millisecond),
-			clientIP,
+			escIP,
 			userInfo,
 			browserName,
 			osName,
@@ -185,22 +187,22 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 
 		// Origin
 		if origin != "" {
-			sb.WriteString(fmt.Sprintf("\n├ 🔗 Origin: `%s`", origin))
+			sb.WriteString(fmt.Sprintf("\n├ 🔗 Origin: `%s`", escapeMD(origin)))
 		}
 
 		// Referer
 		if referer != "" {
-			sb.WriteString(fmt.Sprintf("\n├ ↩️ Referer: `%s`", referer))
+			sb.WriteString(fmt.Sprintf("\n├ ↩️ Referer: `%s`", escapeMD(referer)))
 		}
 
 		// Query string
 		if queryStr != "" {
-			sb.WriteString(fmt.Sprintf("\n├ 🔎 Query: `%s`", queryStr))
+			sb.WriteString(fmt.Sprintf("\n├ 🔎 Query: `%s`", escapeMD(queryStr)))
 		}
 
 		// Content-Type & body sizes
 		if contentType != "" && method != "GET" {
-			sb.WriteString(fmt.Sprintf("\n├ 📄 Content-Type: `%s`", contentType))
+			sb.WriteString(fmt.Sprintf("\n├ 📄 Content-Type: `%s`", escapeMD(contentType)))
 		}
 		if reqSize > 0 {
 			sb.WriteString(fmt.Sprintf("\n├ 📤 Request Size: `%s`", formatBytes(reqSize)))
@@ -295,6 +297,17 @@ func parseLanguage(al string) string {
 		lang = lang[:10]
 	}
 	return lang
+}
+
+// escapeMD escapes Telegram Markdown special characters in dynamic values
+func escapeMD(s string) string {
+	r := strings.NewReplacer(
+		"_", "\\_",
+		"*", "\\*",
+		"`", "\\`",
+		"[", "\\[",
+	)
+	return r.Replace(s)
 }
 
 // formatBytes converts bytes to human-readable string

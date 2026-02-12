@@ -1,13 +1,14 @@
 package Bot
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"runtime"
 	"strings"
 	"sync"
@@ -134,13 +135,22 @@ func (b *bot) SendNotification(message string) {
 	b.sendToChat(text)
 }
 
-// SendRequestLog sends a clean request log to the monitoring chat (no file:line prefix).
+// SendRequestLog sends a clean request log to the monitoring chat.
+// Falls back to plain text if Markdown parsing fails (e.g. special chars in paths).
 func (b *bot) SendRequestLog(message string) {
+	if b.BotAPI == nil {
+		return
+	}
 	msg := tgbotapi.NewMessage(chatID, message)
 	msg.ParseMode = "Markdown"
 	msg.DisableWebPagePreview = true
-	if _, err := b.Send(msg); err != nil {
-		log.Printf("Error sending request log: %v", err)
+	_, err := b.Send(msg)
+	if err != nil {
+		// Markdown failed — retry without formatting so the message still arrives
+		msg.ParseMode = ""
+		if _, retryErr := b.Send(msg); retryErr != nil {
+			log.Printf("Error sending request log: %v (markdown err: %v)", retryErr, err)
+		}
 	}
 }
 
@@ -158,56 +168,66 @@ func (b *bot) sendToChat(text string) {
 // ──────────────────────────────────────────────
 
 func (b *bot) registerCommands() {
+	if b.botToken == "" {
+		log.Println("Bot token is empty, skipping command registration")
+		return
+	}
+
 	type botCommand struct {
 		Command     string `json:"command"`
 		Description string `json:"description"`
 	}
-
-	type botCommandScope struct {
-		Type string `json:"type"`
+	type setCommandsPayload struct {
+		Commands []botCommand   `json:"commands"`
+		Scope    map[string]string `json:"scope,omitempty"`
 	}
 
 	commands := []botCommand{
-		{Command: "health", Description: "🏥 Check all service statuses"},
-		{Command: "stats", Description: "📊 Server statistics & metrics"},
-		{Command: "uptime", Description: "⏱ Server uptime info"},
-		{Command: "errors", Description: "🔴 Recent error log"},
-		{Command: "dbstats", Description: "🗄 Database connection pool stats"},
-		{Command: "ping", Description: "🏓 Quick latency check"},
-		{Command: "version", Description: "📦 Build & version info"},
-		{Command: "mem", Description: "💾 Memory usage statistics"},
-		{Command: "help", Description: "❓ Show available commands"},
+		{Command: "health", Description: "Check all service statuses"},
+		{Command: "stats", Description: "Server statistics and metrics"},
+		{Command: "uptime", Description: "Server uptime info"},
+		{Command: "errors", Description: "Recent error log"},
+		{Command: "dbstats", Description: "Database connection pool stats"},
+		{Command: "ping", Description: "Quick latency check"},
+		{Command: "version", Description: "Build and version info"},
+		{Command: "mem", Description: "Memory usage statistics"},
+		{Command: "help", Description: "Show available commands"},
 	}
 
-	cmdJSON, err := json.Marshal(commands)
-	if err != nil {
-		log.Printf("Failed to marshal commands: %v", err)
-		return
-	}
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setMyCommands", b.botToken)
 
-	// Register for all relevant scopes so the "/" menu works everywhere
-	scopes := []botCommandScope{
-		{Type: "default"},                 // Private chats
-		{Type: "all_group_chats"},         // Group & supergroup chats
-		{Type: "all_chat_administrators"}, // Chat admins
+	// Register for each scope via direct HTTP POST with JSON body
+	scopes := []map[string]string{
+		nil,                           // default (private chats) — no scope field
+		{"type": "all_group_chats"},   // groups & supergroups
+		{"type": "all_chat_administrators"}, // admins
 	}
 
 	for _, scope := range scopes {
-		scopeJSON, _ := json.Marshal(scope)
-		params := url.Values{}
-		params.Set("commands", string(cmdJSON))
-		params.Set("scope", string(scopeJSON))
-
-		resp, err := b.MakeRequest("setMyCommands", params)
+		payload := setCommandsPayload{Commands: commands, Scope: scope}
+		body, err := json.Marshal(payload)
 		if err != nil {
-			log.Printf("Failed to register commands (scope: %s): %v", scope.Type, err)
+			log.Printf("Failed to marshal setMyCommands payload: %v", err)
 			continue
 		}
-		if !resp.Ok {
-			log.Printf("setMyCommands failed (scope: %s): %s", scope.Type, resp.Description)
+
+		resp, err := http.Post(apiURL, "application/json", bytes.NewReader(body))
+		if err != nil {
+			scopeName := "default"
+			if scope != nil {
+				scopeName = scope["type"]
+			}
+			log.Printf("Failed to register commands (scope: %s): %v", scopeName, err)
 			continue
 		}
-		log.Printf("✅ Commands registered for scope: %s", scope.Type)
+		respBody, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		scopeName := "default"
+		if scope != nil {
+			scopeName = scope["type"]
+		}
+		log.Printf("setMyCommands (scope: %s) → %s", scopeName, string(respBody))
 	}
 }
 
