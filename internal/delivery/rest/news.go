@@ -41,7 +41,7 @@ func (cr news) GetAll(c *gin.Context) {
 		return
 	}
 
-	newsList, err := cr.uc.GetAll(c, pq)
+	newsList, err := cr.uc.GetAll(c, *pq)
 	if err != nil {
 		cr.bot.SendErrorNotification(err)
 		c.JSON(500, gin.H{"message": "Failed to fetch news"})
