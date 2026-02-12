@@ -1,12 +1,6 @@
 package rest
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/usecase"
 	"testDeployment/pkg/Bot"
 	"testDeployment/pkg/utils"
@@ -29,78 +23,61 @@ func NewNewsController(g *gin.RouterGroup, bot Bot.Bot, uc usecase.INewsUseCase)
 	r.GET("/getone", controller.GetOneById)
 }
 
-// CreateUserHandler godoc
-// @Summary Get all news
-// @Description Get all news with pagination
-// @ID get-all-news
-// @tags news
-// @Produce json
-// @Param page query int true "Page number"
-// @Success 200 {object} dto.Response
-// @Router /news/getall [get]
+// GetAll godoc
+// @Summary      Get all medical news
+// @Description  Get medical news from PubMed & Europe PMC — topics: dermatology, AI in medicine, skincare, digital health, clinical trials
+// @ID           get-all-news
+// @Tags         news
+// @Produce      json
+// @Param        page  query  int  false  "Page number (default 1)"
+// @Success      200  {object}  domain.NewsList
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /news/getall [get]
 func (cr news) GetAll(c *gin.Context) {
 	pq, err := utils.GetPaginationFromCtx(c)
 	if err != nil {
 		cr.bot.SendErrorNotification(err)
-		c.JSON(200, gin.H{
-			"message": "No news yet",
-		})
+		c.JSON(200, gin.H{"message": "Invalid pagination", "news": []interface{}{}})
+		return
 	}
 
-	url := fmt.Sprintf("https://api-portal.gov.uz/news/category?code_name=news&page=%d", pq.GetPage())
-
-	// Make the HTTP GET request
-	resp, err := http.Get(url)
+	newsList, err := cr.uc.GetAll(c, pq)
 	if err != nil {
-		log.Fatalf("Error making GET request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("Error reading response body: %v", err)
+		cr.bot.SendErrorNotification(err)
+		c.JSON(500, gin.H{"message": "Failed to fetch news"})
+		return
 	}
 
-	// Unmarshal the JSON data into the Response struct
-	var response dto.Response
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-	}
-
-	// Print the details of each item
-	for i, item := range response.Data {
-		response.Data[i].UrlToWeb = fmt.Sprintf("https://gov.uz/news/view/%d/", item.ID)
-	}
-
-	c.JSON(200, response)
+	c.JSON(200, newsList)
 }
+
 // GetOneById godoc
-// @Summary      Get one news article
-// @Description  Get a single news article by its ID
+// @Summary      Get one medical news article
+// @Description  Get a single medical article by its ID (e.g. pubmed-12345678 or epmc-12345678)
 // @ID           get-one-news
 // @Tags         news
 // @Produce      json
-// @Param        id  query  string  true  "News ID"
+// @Param        id  query  string  true  "Article ID"
 // @Success      200  {object}  domain.NewWithSinglePhoto
 // @Failure      404  {object}  map[string]interface{}
 // @Router       /news/getone [get]
 func (cr news) GetOneById(c *gin.Context) {
 	id := c.Query("id")
-	news, err := cr.uc.GetOneById(c, id)
+	if id == "" {
+		c.JSON(400, gin.H{"message": "id parameter is required"})
+		return
+	}
+
+	article, err := cr.uc.GetOneById(c, id)
 	if err != nil {
 		cr.bot.SendErrorNotification(err)
-		c.JSON(200, gin.H{
-			"message": "No news yet",
-		})
+		c.JSON(500, gin.H{"message": "Failed to fetch article"})
 		return
 	}
-	if news == nil {
-		c.JSON(200, gin.H{
-			"message": "no such news",
-		})
+	if article == nil {
+		c.JSON(404, gin.H{"message": "Article not found"})
 		return
 	}
-	c.JSON(200, news)
+
+	c.JSON(200, article)
 }

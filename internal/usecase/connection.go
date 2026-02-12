@@ -37,9 +37,7 @@ func New(
 		bot,
 	)
 	connections[_NewsUseCase] = NewNewsUseCase(
-		postgres.NewNewsRepo(db,
-			bot,
-		),
+		nil,
 		bot,
 	)
 	connections[_DoctorUseCase] = NewDoctorUseCase(
