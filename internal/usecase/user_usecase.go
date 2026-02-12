@@ -5,9 +5,17 @@ import (
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/domain"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (u usecase) RegisterUser(newUser *dto.User) (int, error) {
+	// Hash password with bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, errors.New("could not hash password")
+	}
+	newUser.Password = string(hashedPassword)
 
 	user := u.f.CreateUser(newUser)
 	id, err := u.repo.Register(*user)
@@ -25,7 +33,6 @@ func (u usecase) RegisterUser(newUser *dto.User) (int, error) {
 func (u usecase) Exist(newUser dto.User) (bool, error) {
 	exist, err := u.repo.Exist(newUser.Username)
 	if errors.Is(err, domain.ErrPhoneNumberExist) || !exist {
-		u.bot.SendErrorNotification(err)
 		return false, nil
 	}
 	return exist, nil
@@ -45,18 +52,39 @@ func (u usecase) Login(user dto.User) (bool, int, error) {
 		u.bot.SendErrorNotification(err)
 		return false, 0, err
 	}
-	if exist {
-		id, password, err := u.repo.GetByUsername(user.Username)
-		if err != nil {
-			u.bot.SendErrorNotification(err)
-			return false, 0, err
-		}
-		match := user.Password == password
-		return match, id, nil
-	} else {
+	if !exist {
 		return false, 0, nil
 	}
+
+	id, hashedPassword, err := u.repo.GetByUsername(user.Username)
+	if err != nil {
+		u.bot.SendErrorNotification(err)
+		return false, 0, err
+	}
+
+	// Compare password with bcrypt hash
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
+	if err != nil {
+		// Fallback: try plain text comparison for old accounts
+		if user.Password == hashedPassword {
+			// Upgrade to bcrypt hash
+			go u.upgradePassword(id, user.Password)
+			return true, id, nil
+		}
+		return false, 0, nil
+	}
+	return true, id, nil
 }
+
+// upgradePassword silently upgrades a plain-text password to bcrypt
+func (u usecase) upgradePassword(userID int, plainPassword string) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return
+	}
+	u.repo.UpdatePassword(userID, string(hashed))
+}
+
 func (u usecase) GetAll() (User []dto.User) {
 	return u.repo.GetAll()
 }

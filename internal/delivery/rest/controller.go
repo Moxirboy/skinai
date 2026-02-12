@@ -21,14 +21,23 @@ func NewController(g *gin.RouterGroup, usecase usecase.Usecase, bot Bot.Bot, req
 		bot:     bot,
 		http:    request,
 	}
+
+	// Apply OptionalAuth to all routes so user info is available everywhere
 	r := g.Group("/")
+	r.Use(middleware.OptionalAuth())
 
 	r.GET("/hello", func(c *gin.Context) {
 		c.String(200, "Hello, World!")
 	})
+
+	// ── Public auth routes ──
 	r.POST("/signup", controller.SignUp)
 	r.POST("/login", controller.Login)
+	r.POST("/guest", controller.GuestLogin)
+	r.GET("/auth/status", controller.AuthStatus)
+	r.GET("/auth/guest/remaining", middleware.GuestRemainingHandler())
 
+	// ── Dashboard (protected) ──
 	dash := r.Group("/dashboard")
 	{
 		dash.GET("/", func(c *gin.Context) {
@@ -47,8 +56,6 @@ func NewController(g *gin.RouterGroup, usecase usecase.Usecase, bot Bot.Bot, req
 			middle.GET("/logout", controller.Logout)
 			middle.GET("/deleteAccount", controller.DeleteAccount)
 			middle.POST("/update-email", controller.UpdateEmail)
-		}
-		{
 		}
 		dash.POST("/fillUserInfo", controller.FillUserInfo)
 	}

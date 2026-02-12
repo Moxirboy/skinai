@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"testDeployment/internal/delivery/dto"
+	"testDeployment/internal/delivery/middleware"
 	"testDeployment/internal/usecase"
 )
 
@@ -155,9 +155,8 @@ func (c facts) GetQuestion(ctx *gin.Context) {
 // @Success 200
 // @Router /fact/answer-question [post]
 func (c facts) AnswerQuestion(ctx *gin.Context) {
-	s := sessions.Default(ctx)
 	score := dto.Score{}
-	id := s.Get("userId").(int)
+	id := middleware.GetUserID(ctx)
 	if err := ctx.ShouldBind(&score); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

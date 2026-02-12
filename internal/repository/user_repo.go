@@ -142,3 +142,13 @@ func (r repo) GetPoint(userID interface{}) (value int, err error) {
 	}
 	return value, nil
 }
+
+func (r repo) UpdatePassword(userID int, hashedPassword string) error {
+	query := `UPDATE users SET password = $1 WHERE id = $2`
+	_, err := r.db.Exec(query, hashedPassword, userID)
+	if err != nil {
+		r.Bot.SendErrorNotification(err)
+		return err
+	}
+	return nil
+}

@@ -3,8 +3,8 @@ package rest
 import (
 	"net/http"
 	"testDeployment/internal/delivery/dto"
+	"testDeployment/internal/delivery/middleware"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,8 +27,7 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 		})
 		return
 	}
-	s := sessions.Default(ctx)
-	UserInfo.Id = s.Get("userId").(int)
+	UserInfo.Id = middleware.GetUserID(ctx)
 	id, err := c.usecase.FillInfo(UserInfo)
 	if err != nil {
 		c.bot.SendErrorNotification(err)
@@ -57,8 +56,7 @@ func (c controller) FillUserInfo(ctx *gin.Context) {
 // @Router /dashboard/middle/update-email [post]
 func (c controller) UpdateEmail(ctx *gin.Context) {
 	var user dto.UserEmail
-	s := sessions.Default(ctx)
-	user.ID = s.Get("userId").(int)
+	user.ID = middleware.GetUserID(ctx)
 
 	// Bind JSON input to the struct
 	if err := ctx.ShouldBindJSON(&user); err != nil {
@@ -98,8 +96,7 @@ func (c controller) UpdateEmail(ctx *gin.Context) {
 // @Router       /dashboard/middle/updateuserinfo [post]
 func (c controller) UpdateUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
-	s := sessions.Default(ctx)
-	User.Id = s.Get("userId").(int)
+	User.Id = middleware.GetUserID(ctx)
 	err := ctx.ShouldBindJSON(&User)
 	if err != nil {
 		c.bot.SendErrorNotification(err)
@@ -128,8 +125,7 @@ func (c controller) UpdateUserInfo(ctx *gin.Context) {
 // @Router /dashboard/middle/showUserInfo [get]
 func (c controller) ShowUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
-	s := sessions.Default(ctx)
-	User.Id = s.Get("userId").(int)
+	User.Id = middleware.GetUserID(ctx)
 	if User.Id == 0 {
 		ctx.String(http.StatusUnauthorized, "Not registered")
 		return
