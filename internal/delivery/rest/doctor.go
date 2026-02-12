@@ -20,6 +20,15 @@ func NewDoctorController(g *gin.RouterGroup,uc usecase.IDoctorUsecase,bot Bot.Bo
 	r.GET("/getalldoctors",handler.GetAll)
 	r.GET("/getonedoctor",handler.GetOneByID)
 }
+
+// GetAllDoctors godoc
+// @Summary      Get all doctors
+// @Description  Returns all doctors grouped by type
+// @Tags         doctors
+// @Produce      json
+// @Success      200  {array}   domain.DoctorByType
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /doc/getalldoctors [get]
 func (r *doctor) GetAll(c *gin.Context){
 	doctors,err:=r.uc.GetAll(c)
 	if err!=nil{
@@ -36,6 +45,16 @@ func (r *doctor) GetAll(c *gin.Context){
 	}
 	c.JSON(200,doctors)
 }
+
+// GetOneDoctorByID godoc
+// @Summary      Get doctor by name
+// @Description  Returns doctor details filtered by name
+// @Tags         doctors
+// @Produce      json
+// @Param        name  query  string  true  "Doctor name"
+// @Success      200  {array}   domain.DoctorWithType
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /doc/getonedoctor [get]
 func (r *doctor) GetOneByID(c *gin.Context){
 	name:=c.Query("name")
 	

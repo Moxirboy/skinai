@@ -149,6 +149,13 @@ func (c controller) Login(ctx *gin.Context) {
 		return
 	}
 }
+// Logout godoc
+// @Summary      Logout user
+// @Description  Clear session and logout user
+// @Tags         users
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /dashboard/middle/logout [get]
 func (c controller) Logout(ctx *gin.Context) {
 	s := sessions.Default(ctx)
 	s.Clear()
@@ -160,6 +167,14 @@ func (c controller) Logout(ctx *gin.Context) {
 
 }
 
+// DeleteAccount godoc
+// @Summary      Delete user account
+// @Description  Delete the current user's account and clear session
+// @Tags         users
+// @Produce      json
+// @Success      202  {string}  string  "Redirected"
+// @Failure      400  {object}  map[string]interface{}
+// @Router       /dashboard/middle/deleteAccount [get]
 func (cr controller) DeleteAccount(c *gin.Context) {
 	s := sessions.Default(c)
 	id := s.Get("userId").(int)

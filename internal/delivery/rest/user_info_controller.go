@@ -85,6 +85,17 @@ func (c controller) UpdateEmail(ctx *gin.Context) {
 	})
 }
 
+// UpdateUserInfo godoc
+// @Summary      Update user info
+// @Description  Update user information fields
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user_info  body  dto.UserInfo  true  "Updated user info"
+// @Success      200  {string}  string  "id"
+// @Failure      400  {string}  string  "internal error"
+// @Failure      406  {object}  map[string]interface{}
+// @Router       /dashboard/middle/updateuserinfo [post]
 func (c controller) UpdateUserInfo(ctx *gin.Context) {
 	var User dto.UserInfo
 	s := sessions.Default(ctx)

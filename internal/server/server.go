@@ -85,12 +85,17 @@ func (s Server) Run() error {
 	}
 	ai.Configure(conf.Instruction, 0.7, 0.95, 40, 300)
 	conf.Ai.Prompt=os.Getenv("PROMPT")
-	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf, pg, geminiKey)
 	conf.Port = os.Getenv("PORT")
 	if conf.Port == "" {
 		conf.Port = "8080"
 	}
-	NewBot.SendNotification("Runnung on : " + conf.Port)
+
+	// Inject dependencies into bot for health checks and stats
+	NewBot.SetDependencies(pg, geminiKey, conf.Port)
+	NewBot.StartCommandListener()
+
+	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf, pg, geminiKey)
+	NewBot.SendNotification("Running on : " + conf.Port)
 	return r.Run(fmt.Sprintf(":%s", conf.Port))
 }
 
@@ -100,9 +105,20 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 		c.Next()
 		duration := time.Since(start)
 		statusCode := c.Writer.Status()
+
+		// Track request and error counts for /stats command
+		b.IncrementRequests()
+		if statusCode >= 400 {
+			b.IncrementErrors()
+		}
+
+		// Skip logging health check pings to reduce noise
+		if c.Request.URL.Path == "/api/v1/health" {
+			return
+		}
+
 		logMessage := fmt.Sprintf("Method: %s, Path: %s, Status: %d, Duration: %v",
 			c.Request.Method, c.Request.URL.Path, statusCode, duration)
-
 		b.SendNotification(logMessage)
 	}
 }

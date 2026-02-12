@@ -76,6 +76,16 @@ func (cr news) GetAll(c *gin.Context) {
 
 	c.JSON(200, response)
 }
+// GetOneById godoc
+// @Summary      Get one news article
+// @Description  Get a single news article by its ID
+// @ID           get-one-news
+// @Tags         news
+// @Produce      json
+// @Param        id  query  string  true  "News ID"
+// @Success      200  {object}  domain.NewWithSinglePhoto
+// @Failure      404  {object}  map[string]interface{}
+// @Router       /news/getone [get]
 func (cr news) GetOneById(c *gin.Context) {
 	id := c.Query("id")
 	news, err := cr.uc.GetOneById(c, id)

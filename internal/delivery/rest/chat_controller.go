@@ -64,6 +64,13 @@ func (c *chat) SendMessage(ctx *gin.Context) {
 	})
 }
 
+// GetAllMessages godoc
+// @Summary      Get all messages
+// @Description  Returns all chat messages for the current user
+// @Tags         message
+// @Produce      json
+// @Success      200  {array}   domain.Message
+// @Router       /dashboard/middle/get-all-messages [get]
 func (c controller) GetAllMessages(ctx *gin.Context) {
 	s := sessions.Default(ctx)
 	UserID := s.Get("userId").(int)
