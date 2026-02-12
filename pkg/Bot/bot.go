@@ -23,10 +23,24 @@ import (
 // ──────────────────────────────────────────────
 
 var (
-	Version   = "1.2.0"
+	Version   = "1.3.0"
 	BuildTime = "unknown"
 	GoVersion = runtime.Version()
 )
+
+// ──────────────────────────────────────────────
+// Constants
+// ──────────────────────────────────────────────
+
+const (
+	chatID              = int64(-4103413678)
+	maxRecentErrors     = 10
+	healthCheckInterval = 6 * time.Hour
+)
+
+// ──────────────────────────────────────────────
+// Types
+// ──────────────────────────────────────────────
 
 type bot struct {
 	*tgbotapi.BotAPI
@@ -46,6 +60,7 @@ type errorEntry struct {
 	Message string
 }
 
+// Bot is the public interface for the Telegram monitoring bot.
 type Bot interface {
 	SendErrorNotification(err error)
 	SendNotification(mess string)
@@ -56,9 +71,9 @@ type Bot interface {
 	IncrementErrors()
 }
 
-const chatID = int64(-4103413678)
-const maxRecentErrors = 10
-const healthCheckInterval = 6 * time.Hour
+// ──────────────────────────────────────────────
+// Constructor & Dependency Injection
+// ──────────────────────────────────────────────
 
 func NewBot(botAPI *tgbotapi.BotAPI) Bot {
 	return &bot{
@@ -90,10 +105,15 @@ func (b *bot) IncrementErrors() {
 	b.errCount++
 }
 
+// ──────────────────────────────────────────────
+// Notification Methods
+// ──────────────────────────────────────────────
+
 func (b *bot) SendErrorNotification(err error) {
 	if err == nil {
 		return
 	}
+
 	b.mu.Lock()
 	b.errCount++
 	if len(b.lastErrs) >= maxRecentErrors {
@@ -103,36 +123,33 @@ func (b *bot) SendErrorNotification(err error) {
 	b.mu.Unlock()
 
 	_, file, line, _ := runtime.Caller(1)
-	message := fmt.Sprintf("🔴 *Error*\n`%s:%d`\n```\n%v\n```\n_%s_",
+	text := fmt.Sprintf("🔴 *Error*\n`%s:%d`\n```\n%v\n```\n_%s_",
 		file, line, err, time.Now().Format("2006/01/02 15:04:05"))
-	msg := tgbotapi.NewMessage(chatID, message)
-	msg.ParseMode = "Markdown"
-	_, sendErr := b.Send(msg)
-	if sendErr != nil {
-		log.Printf("Error sending notification: %v", sendErr)
-	}
+	b.sendToChat(text)
 }
 
 func (b *bot) SendNotification(message string) {
-	_, file, line, _ := runtime.Caller(1)
-	logEntry := fmt.Sprintf("ℹ️ `[%s:%d]`\n%s\n_%s_",
-		file, line, message, time.Now().Format("2006/01/02 15:04:05"))
-	msg := tgbotapi.NewMessage(chatID, logEntry)
-	msg.ParseMode = "Markdown"
-	_, err := b.Send(msg)
-	if err != nil {
-		log.Printf("Error sending notification: %v", err)
-	}
+	text := fmt.Sprintf("ℹ️ %s\n_%s_",
+		message, time.Now().Format("2006/01/02 15:04:05"))
+	b.sendToChat(text)
 }
 
-// SendRequestLog sends a request log to the monitoring chat without the caller file:line prefix
+// SendRequestLog sends a clean request log to the monitoring chat (no file:line prefix).
 func (b *bot) SendRequestLog(message string) {
 	msg := tgbotapi.NewMessage(chatID, message)
 	msg.ParseMode = "Markdown"
 	msg.DisableWebPagePreview = true
-	_, err := b.Send(msg)
-	if err != nil {
+	if _, err := b.Send(msg); err != nil {
 		log.Printf("Error sending request log: %v", err)
+	}
+}
+
+// sendToChat is a shared helper for sending Markdown messages to the monitoring chat.
+func (b *bot) sendToChat(text string) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ParseMode = "Markdown"
+	if _, err := b.Send(msg); err != nil {
+		log.Printf("Error sending bot message: %v", err)
 	}
 }
 
@@ -144,6 +161,10 @@ func (b *bot) registerCommands() {
 	type botCommand struct {
 		Command     string `json:"command"`
 		Description string `json:"description"`
+	}
+
+	type botCommandScope struct {
+		Type string `json:"type"`
 	}
 
 	commands := []botCommand{
@@ -164,18 +185,30 @@ func (b *bot) registerCommands() {
 		return
 	}
 
-	params := url.Values{}
-	params.Set("commands", string(cmdJSON))
-	resp, err := b.MakeRequest("setMyCommands", params)
-	if err != nil {
-		log.Printf("Failed to register bot commands: %v", err)
-		return
+	// Register for all relevant scopes so the "/" menu works everywhere
+	scopes := []botCommandScope{
+		{Type: "default"},                 // Private chats
+		{Type: "all_group_chats"},         // Group & supergroup chats
+		{Type: "all_chat_administrators"}, // Chat admins
 	}
-	if !resp.Ok {
-		log.Printf("setMyCommands failed: %s", resp.Description)
-		return
+
+	for _, scope := range scopes {
+		scopeJSON, _ := json.Marshal(scope)
+		params := url.Values{}
+		params.Set("commands", string(cmdJSON))
+		params.Set("scope", string(scopeJSON))
+
+		resp, err := b.MakeRequest("setMyCommands", params)
+		if err != nil {
+			log.Printf("Failed to register commands (scope: %s): %v", scope.Type, err)
+			continue
+		}
+		if !resp.Ok {
+			log.Printf("setMyCommands failed (scope: %s): %s", scope.Type, resp.Description)
+			continue
+		}
+		log.Printf("✅ Commands registered for scope: %s", scope.Type)
 	}
-	log.Println("✅ Bot commands registered with Telegram successfully")
 }
 
 // ──────────────────────────────────────────────
@@ -190,50 +223,70 @@ func (b *bot) startScheduledHealthCheck() {
 			b.runScheduledHealthCheck()
 		}
 	}()
-	log.Printf("Scheduled health check every %v", healthCheckInterval)
+	log.Printf("⏰ Scheduled health check every %v", healthCheckInterval)
 }
 
 func (b *bot) runScheduledHealthCheck() {
-	pgUp, _, pgErr := b.checkPostgres()
-	botUp, _, botErr := b.checkTelegramAPI()
-	aiUp, _, aiErr := b.checkGeminiAI()
-	srvUp, _, srvErr := b.checkHTTPServer()
+	checks := []struct {
+		name  string
+		check func() (bool, string, string)
+	}{
+		{"PostgreSQL", b.checkPostgres},
+		{"Telegram API", b.checkTelegramAPI},
+		{"Gemini AI", b.checkGeminiAI},
+		{"HTTP Server", b.checkHTTPServer},
+	}
 
-	allUp := pgUp && botUp && aiUp && srvUp
-	if allUp {
+	var down []string
+	for _, c := range checks {
+		up, _, errMsg := c.check()
+		if !up {
+			down = append(down, fmt.Sprintf("❌ %s: `%s`", c.name, errMsg))
+		}
+	}
+
+	if len(down) == 0 {
 		return // all good, stay silent
 	}
 
-	// Something is down — alert the monitoring chat
 	var sb strings.Builder
 	sb.WriteString("⚠️ *Scheduled Health Alert*\n\n")
-	if !pgUp {
-		sb.WriteString(fmt.Sprintf("❌ PostgreSQL: `%s`\n", pgErr))
-	}
-	if !botUp {
-		sb.WriteString(fmt.Sprintf("❌ Telegram API: `%s`\n", botErr))
-	}
-	if !aiUp {
-		sb.WriteString(fmt.Sprintf("❌ Gemini AI: `%s`\n", aiErr))
-	}
-	if !srvUp {
-		sb.WriteString(fmt.Sprintf("❌ HTTP Server: `%s`\n", srvErr))
+	for _, d := range down {
+		sb.WriteString(d + "\n")
 	}
 	sb.WriteString(fmt.Sprintf("\n_Auto-check at %s_", time.Now().Format("2006/01/02 15:04:05")))
 	b.sendReply(chatID, sb.String())
 }
 
-// StartCommandListener starts polling for Telegram bot commands in a goroutine
+// ──────────────────────────────────────────────
+// Command Listener & Dispatch
+// ──────────────────────────────────────────────
+
+// commandHandler maps command names to their handler functions.
+type commandHandler func(chatID int64)
+
+func (b *bot) commandHandlers() map[string]commandHandler {
+	return map[string]commandHandler{
+		"health":  b.handleHealth,
+		"stats":   b.handleStats,
+		"uptime":  b.handleUptime,
+		"errors":  b.handleErrors,
+		"dbstats": b.handleDBStats,
+		"version": b.handleVersion,
+		"mem":     b.handleMem,
+		"help":    b.handleHelp,
+		"start":   b.handleHelp,
+	}
+}
+
+// StartCommandListener starts polling for Telegram bot commands in a goroutine.
 func (b *bot) StartCommandListener() {
 	if b.BotAPI == nil {
 		log.Println("Bot API is nil, skipping command listener")
 		return
 	}
 
-	// Register command menu with Telegram
 	b.registerCommands()
-
-	// Start scheduled health checks
 	b.startScheduledHealthCheck()
 
 	u := tgbotapi.NewUpdate(0)
@@ -243,6 +296,8 @@ func (b *bot) StartCommandListener() {
 		log.Printf("Failed to get updates channel: %v", err)
 		return
 	}
+
+	handlers := b.commandHandlers()
 
 	go func() {
 		for update := range updates {
@@ -256,35 +311,26 @@ func (b *bot) StartCommandListener() {
 				continue
 			}
 
-			// Handle commands
 			if update.Message.IsCommand() {
 				b.showTyping(update.Message.Chat.ID)
-				switch update.Message.Command() {
-				case "health":
-					b.handleHealth(update.Message.Chat.ID)
-				case "stats":
-					b.handleStats(update.Message.Chat.ID)
-				case "uptime":
-					b.handleUptime(update.Message.Chat.ID)
-				case "errors":
-					b.handleErrors(update.Message.Chat.ID)
-				case "dbstats":
-					b.handleDBStats(update.Message.Chat.ID)
-				case "ping":
+				cmd := update.Message.Command()
+
+				// Special case: /ping needs messageID for edit trick
+				if cmd == "ping" {
 					b.handlePing(update.Message.Chat.ID, update.Message.MessageID)
-				case "version":
-					b.handleVersion(update.Message.Chat.ID)
-				case "mem":
-					b.handleMem(update.Message.Chat.ID)
-				case "help", "start":
-					b.handleHelp(update.Message.Chat.ID)
-				default:
-					b.sendReply(update.Message.Chat.ID, "❓ Unknown command. Send /help to see available commands.")
+					continue
+				}
+
+				if handler, ok := handlers[cmd]; ok {
+					handler(update.Message.Chat.ID)
+				} else {
+					b.sendReply(update.Message.Chat.ID,
+						"❓ Unknown command. Send /help to see available commands.")
 				}
 				continue
 			}
 
-			// Handle regular messages — only in private chat, give a hint
+			// Regular messages — hint in private chat only
 			if update.Message.Chat.IsPrivate() {
 				b.sendReply(update.Message.Chat.ID,
 					"💡 I'm a monitoring bot. Use /help to see what I can do!")
@@ -292,40 +338,45 @@ func (b *bot) StartCommandListener() {
 		}
 	}()
 
-	log.Println("Bot command listener started (with callbacks + scheduled checks)")
+	log.Println("🤖 Bot command listener started")
 }
 
 // ──────────────────────────────────────────────
 // Callback Query Handler (inline keyboard buttons)
 // ──────────────────────────────────────────────
 
+var callbackMap = map[string]string{
+	"cb_health":  "health",
+	"cb_stats":   "stats",
+	"cb_uptime":  "uptime",
+	"cb_errors":  "errors",
+	"cb_dbstats": "dbstats",
+	"cb_ping":    "ping",
+	"cb_version": "version",
+	"cb_mem":     "mem",
+	"cb_help":    "help",
+}
+
 func (b *bot) handleCallback(cq *tgbotapi.CallbackQuery) {
-	// Acknowledge the callback immediately
-	callback := tgbotapi.NewCallback(cq.ID, "")
-	b.AnswerCallbackQuery(callback)
+	// Acknowledge immediately
+	b.AnswerCallbackQuery(tgbotapi.NewCallback(cq.ID, ""))
 
 	targetChatID := cq.Message.Chat.ID
 	b.showTyping(targetChatID)
 
-	switch cq.Data {
-	case "cb_health":
-		b.handleHealth(targetChatID)
-	case "cb_stats":
-		b.handleStats(targetChatID)
-	case "cb_uptime":
-		b.handleUptime(targetChatID)
-	case "cb_errors":
-		b.handleErrors(targetChatID)
-	case "cb_dbstats":
-		b.handleDBStats(targetChatID)
-	case "cb_ping":
+	cmd, ok := callbackMap[cq.Data]
+	if !ok {
+		return
+	}
+
+	if cmd == "ping" {
 		b.handlePing(targetChatID, 0)
-	case "cb_version":
-		b.handleVersion(targetChatID)
-	case "cb_mem":
-		b.handleMem(targetChatID)
-	case "cb_help":
-		b.handleHelp(targetChatID)
+		return
+	}
+
+	handlers := b.commandHandlers()
+	if handler, ok := handlers[cmd]; ok {
+		handler(targetChatID)
 	}
 }
 
@@ -379,44 +430,34 @@ func quickActionsKeyboard() tgbotapi.InlineKeyboardMarkup {
 // ──────────────────────────────────────────────
 
 func (b *bot) handleHealth(targetChatID int64) {
+	type checkResult struct {
+		name    string
+		up      bool
+		latency string
+		errMsg  string
+	}
+
+	checks := []checkResult{
+		{"PostgreSQL", false, "", ""},
+		{"Telegram Bot API", false, "", ""},
+		{"Gemini AI", false, "", ""},
+		{"HTTP Server", false, "", ""},
+	}
+	checks[0].up, checks[0].latency, checks[0].errMsg = b.checkPostgres()
+	checks[1].up, checks[1].latency, checks[1].errMsg = b.checkTelegramAPI()
+	checks[2].up, checks[2].latency, checks[2].errMsg = b.checkGeminiAI()
+	checks[3].up, checks[3].latency, checks[3].errMsg = b.checkHTTPServer()
+
 	var sb strings.Builder
 	sb.WriteString("🏥 *System Health Check*\n\n")
 	allUp := true
-
-	// 1. PostgreSQL
-	pgUp, pgLat, pgErr := b.checkPostgres()
-	if pgUp {
-		sb.WriteString(fmt.Sprintf("✅ *PostgreSQL* — UP (%s)\n", pgLat))
-	} else {
-		sb.WriteString(fmt.Sprintf("❌ *PostgreSQL* — DOWN (%s)\n   └ `%s`\n", pgLat, pgErr))
-		allUp = false
-	}
-
-	// 2. Telegram Bot API
-	botUp, botLat, botErr := b.checkTelegramAPI()
-	if botUp {
-		sb.WriteString(fmt.Sprintf("✅ *Telegram Bot API* — UP (%s)\n", botLat))
-	} else {
-		sb.WriteString(fmt.Sprintf("❌ *Telegram Bot API* — DOWN (%s)\n   └ `%s`\n", botLat, botErr))
-		allUp = false
-	}
-
-	// 3. Gemini AI
-	aiUp, aiLat, aiErr := b.checkGeminiAI()
-	if aiUp {
-		sb.WriteString(fmt.Sprintf("✅ *Gemini AI* — UP (%s)\n", aiLat))
-	} else {
-		sb.WriteString(fmt.Sprintf("❌ *Gemini AI* — DOWN (%s)\n   └ `%s`\n", aiLat, aiErr))
-		allUp = false
-	}
-
-	// 4. HTTP Server
-	srvUp, srvLat, srvErr := b.checkHTTPServer()
-	if srvUp {
-		sb.WriteString(fmt.Sprintf("✅ *HTTP Server* — UP (%s)\n", srvLat))
-	} else {
-		sb.WriteString(fmt.Sprintf("❌ *HTTP Server* — DOWN (%s)\n   └ `%s`\n", srvLat, srvErr))
-		allUp = false
+	for _, c := range checks {
+		if c.up {
+			sb.WriteString(fmt.Sprintf("✅ *%s* — UP (%s)\n", c.name, c.latency))
+		} else {
+			sb.WriteString(fmt.Sprintf("❌ *%s* — DOWN (%s)\n   └ `%s`\n", c.name, c.latency, c.errMsg))
+			allUp = false
+		}
 	}
 
 	sb.WriteString("\n")
