@@ -3,7 +3,7 @@ package rest
 import (
 	"io"
 	"net/http"
-	"testDeployment/internal/common/config"
+	config "testDeployment/internal/common/config"
 	"testDeployment/internal/delivery/middleware"
 	"testDeployment/internal/domain"
 	"testDeployment/pkg/ai"

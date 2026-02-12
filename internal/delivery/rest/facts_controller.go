@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"os"
@@ -10,6 +9,9 @@ import (
 	"testDeployment/internal/delivery/dto"
 	"testDeployment/internal/delivery/middleware"
 	"testDeployment/internal/usecase"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 type facts struct {
