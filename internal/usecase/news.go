@@ -6,8 +6,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"net/url"
 	"strings"
+	"sync"
 	"testDeployment/internal/domain"
 	"testDeployment/pkg/Bot"
 	"testDeployment/pkg/utils"
@@ -23,112 +26,388 @@ func NewNewsUseCase(_ interface{}, bot Bot.Bot) INewsUseCase {
 	return &newsUseCase{
 		bot: bot,
 		client: &http.Client{
-			Timeout: 15 * time.Second,
+			Timeout: 20 * time.Second,
 		},
 	}
 }
 
-// PubMed E-utilities response types
+// ──────────────────────────────────────────────
+// Source 1: Europe PMC  (JSON, free, no key)
+// ──────────────────────────────────────────────
 
-type esearchResult struct {
-	ESearchResult struct {
-		Count  string   `json:"count"`
-		IDList []string `json:"idlist"`
-	} `json:"esearchresult"`
+type epmcResponse struct {
+	HitCount int `json:"hitCount"`
+	Results  []struct {
+		ID            string `json:"id"`
+		Title         string `json:"title"`
+		Abstract      string `json:"abstractText"`
+		AuthorString  string `json:"authorString"`
+		JournalTitle  string `json:"journalTitle"`
+		DateOfCreat   string `json:"firstPublicationDate"`
+		PMID          string `json:"pmid"`
+		DOI           string `json:"doi"`
+	} `json:"resultList>result"`
 }
 
-type pubmedArticleSet struct {
-	XMLName  xml.Name        `xml:"PubmedArticleSet"`
-	Articles []pubmedArticle `xml:"PubmedArticle"`
+// Nested structure for the actual JSON shape
+type epmcResponseRaw struct {
+	HitCount   int `json:"hitCount"`
+	ResultList struct {
+		Result []struct {
+			ID           string `json:"id"`
+			Title        string `json:"title"`
+			Abstract     string `json:"abstractText"`
+			AuthorString string `json:"authorString"`
+			JournalTitle string `json:"journalTitle"`
+			DateOfCreat  string `json:"firstPublicationDate"`
+			PMID         string `json:"pmid"`
+			DOI          string `json:"doi"`
+		} `json:"result"`
+	} `json:"resultList"`
 }
 
-type pubmedArticle struct {
-	Citation struct {
-		PMID struct {
-			Value string `xml:",chardata"`
-		} `xml:"PMID"`
-		Article struct {
-			Title    string `xml:"ArticleTitle"`
-			Abstract struct {
-				Texts []string `xml:"AbstractText"`
-			} `xml:"Abstract"`
-			Journal struct {
-				Title string `xml:"Title"`
-				Date  struct {
-					Year  string `xml:"Year"`
-					Month string `xml:"Month"`
-					Day   string `xml:"Day"`
-				} `xml:"JournalIssue>PubDate"`
-			} `xml:"Journal"`
-			AuthorList struct {
-				Authors []struct {
-					LastName string `xml:"LastName"`
-					ForeName string `xml:"ForeName"`
-				} `xml:"Author"`
-			} `xml:"AuthorList"`
-		} `xml:"Article"`
-	} `xml:"MedlineCitation"`
+func (u *newsUseCase) fetchEuropePMC(query string, pageSize, offset int) ([]*domain.NewWithSinglePhoto, int, error) {
+	apiURL := fmt.Sprintf(
+		"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%s&format=json&pageSize=%d&cursorMark=*&sort=DATE_CREATED+desc",
+		url.QueryEscape(query), pageSize,
+	)
+
+	resp, err := u.client.Get(apiURL)
+	if err != nil {
+		return nil, 0, fmt.Errorf("europe pmc request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, 0, fmt.Errorf("europe pmc read body: %w", err)
+	}
+
+	var raw epmcResponseRaw
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, 0, fmt.Errorf("europe pmc parse json: %w (body: %.200s)", err, string(body))
+	}
+
+	var articles []*domain.NewWithSinglePhoto
+	for _, r := range raw.ResultList.Result {
+		abstract := r.Abstract
+		if len(abstract) > 500 {
+			abstract = abstract[:497] + "..."
+		}
+		owner := r.AuthorString
+		if len(owner) > 200 {
+			owner = owner[:197] + "..."
+		}
+		if owner == "" {
+			owner = r.JournalTitle
+		}
+
+		link := ""
+		if r.DOI != "" {
+			link = "https://doi.org/" + r.DOI
+		} else if r.PMID != "" {
+			link = "https://pubmed.ncbi.nlm.nih.gov/" + r.PMID
+		}
+
+		articles = append(articles, &domain.NewWithSinglePhoto{
+			ID:        r.ID,
+			Title:     r.Title,
+			Body:      abstract,
+			Owner:     owner,
+			CreatedAt: r.DateOfCreat,
+			Source:    link,
+			Category: "Research",
+		})
+	}
+	return articles, raw.HitCount, nil
 }
 
-const (
-	pubmedSearchURL  = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-	pubmedFetchURL   = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-	pubmedArticleURL = "https://pubmed.ncbi.nlm.nih.gov/"
-	pageSize         = 10
-	searchTerm       = "dermatology OR skin disease OR skincare OR dermatitis"
-)
+// ──────────────────────────────────────────────
+// Source 2: WHO Disease Outbreak News (RSS)
+// ──────────────────────────────────────────────
+
+type whoRSS struct {
+	XMLName xml.Name `xml:"rss"`
+	Channel struct {
+		Items []struct {
+			Title       string `xml:"title"`
+			Link        string `xml:"link"`
+			Description string `xml:"description"`
+			PubDate     string `xml:"pubDate"`
+			Category    string `xml:"category"`
+		} `xml:"item"`
+	} `xml:"channel"`
+}
+
+func (u *newsUseCase) fetchWHO() ([]*domain.NewWithSinglePhoto, error) {
+	feeds := []string{
+		"https://www.who.int/rss-feeds/news/en/",
+		"https://www.who.int/rss-feeds/headlines/en/",
+	}
+
+	var allArticles []*domain.NewWithSinglePhoto
+	for _, feedURL := range feeds {
+		req, err := http.NewRequest("GET", feedURL, nil)
+		if err != nil {
+			log.Printf("[NEWS] WHO request build error for %s: %v", feedURL, err)
+			continue
+		}
+		req.Header.Set("User-Agent", "SkinAI-Bot/1.0 (health news aggregator)")
+
+		resp, err := u.client.Do(req)
+		if err != nil {
+			log.Printf("[NEWS] WHO fetch error for %s: %v", feedURL, err)
+			continue
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			log.Printf("[NEWS] WHO read body error: %v", err)
+			continue
+		}
+
+		var rss whoRSS
+		if err := xml.Unmarshal(body, &rss); err != nil {
+			log.Printf("[NEWS] WHO XML parse error: %v (body: %.200s)", err, string(body))
+			continue
+		}
+
+		for i, item := range rss.Channel.Items {
+			if i >= 10 {
+				break
+			}
+			desc := item.Description
+			// strip HTML tags from description
+			desc = stripHTMLTags(desc)
+			if len(desc) > 500 {
+				desc = desc[:497] + "..."
+			}
+			cat := item.Category
+			if cat == "" {
+				cat = "WHO News"
+			}
+			allArticles = append(allArticles, &domain.NewWithSinglePhoto{
+				ID:        fmt.Sprintf("who-%d", i),
+				Title:     item.Title,
+				Body:      desc,
+				Owner:     "World Health Organization",
+				CreatedAt: item.PubDate,
+				Source:    item.Link,
+				Category: cat,
+			})
+		}
+	}
+	return allArticles, nil
+}
+
+// ──────────────────────────────────────────────
+// Source 3: MedlinePlus Health Topics (RSS)
+// ──────────────────────────────────────────────
+
+func (u *newsUseCase) fetchMedlinePlus() ([]*domain.NewWithSinglePhoto, error) {
+	// MedlinePlus skin-related RSS
+	feedURL := "https://medlineplus.gov/feeds/topic_685.xml" // Skin Conditions
+
+	req, err := http.NewRequest("GET", feedURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("medlineplus request build: %w", err)
+	}
+	req.Header.Set("User-Agent", "SkinAI-Bot/1.0 (health news aggregator)")
+
+	resp, err := u.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("medlineplus fetch: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("medlineplus read body: %w", err)
+	}
+
+	// MedlinePlus uses Atom/RSS format
+	type mlpFeed struct {
+		XMLName xml.Name `xml:"feed"`
+		Entries []struct {
+			Title   string `xml:"title"`
+			Summary string `xml:"summary"`
+			Updated string `xml:"updated"`
+			ID      string `xml:"id"`
+			Link    struct {
+				Href string `xml:"href,attr"`
+			} `xml:"link"`
+		} `xml:"entry"`
+	}
+
+	var feed mlpFeed
+	if err := xml.Unmarshal(body, &feed); err != nil {
+		// Try RSS format
+		type rssFeed struct {
+			XMLName xml.Name `xml:"rss"`
+			Channel struct {
+				Items []struct {
+					Title       string `xml:"title"`
+					Link        string `xml:"link"`
+					Description string `xml:"description"`
+					PubDate     string `xml:"pubDate"`
+				} `xml:"item"`
+			} `xml:"channel"`
+		}
+		var rss rssFeed
+		if err2 := xml.Unmarshal(body, &rss); err2 != nil {
+			return nil, fmt.Errorf("medlineplus parse error (atom: %v, rss: %v, body: %.200s)", err, err2, string(body))
+		}
+		var articles []*domain.NewWithSinglePhoto
+		for i, item := range rss.Channel.Items {
+			if i >= 10 {
+				break
+			}
+			desc := stripHTMLTags(item.Description)
+			if len(desc) > 500 {
+				desc = desc[:497] + "..."
+			}
+			articles = append(articles, &domain.NewWithSinglePhoto{
+				ID:        fmt.Sprintf("mlp-rss-%d", i),
+				Title:     item.Title,
+				Body:      desc,
+				Owner:     "MedlinePlus",
+				CreatedAt: item.PubDate,
+				Source:    item.Link,
+				Category: "Health Topics",
+			})
+		}
+		return articles, nil
+	}
+
+	var articles []*domain.NewWithSinglePhoto
+	for i, entry := range feed.Entries {
+		if i >= 10 {
+			break
+		}
+		summary := stripHTMLTags(entry.Summary)
+		if len(summary) > 500 {
+			summary = summary[:497] + "..."
+		}
+		articles = append(articles, &domain.NewWithSinglePhoto{
+			ID:        fmt.Sprintf("mlp-%d", i),
+			Title:     entry.Title,
+			Body:      summary,
+			Owner:     "MedlinePlus",
+			CreatedAt: entry.Updated,
+			Source:    entry.Link.Href,
+			Category: "Health Topics",
+		})
+	}
+	return articles, nil
+}
+
+// ──────────────────────────────────────────────
+// Main methods
+// ──────────────────────────────────────────────
+
+// Search queries rotated across topics
+var searchTopics = []string{
+	"dermatology skin disease treatment",
+	"skin cancer melanoma diagnosis",
+	"eczema psoriasis dermatitis therapy",
+	"cosmetic dermatology skincare",
+	"AI artificial intelligence dermatology",
+}
+
+const perPage = 10
 
 func (u *newsUseCase) GetAll(ctx context.Context, query utils.PaginationQuery) (*domain.NewsList, error) {
 	page := query.GetPage()
 	if page < 1 {
 		page = 1
 	}
-	retStart := (page - 1) * pageSize
 
-	searchURL := fmt.Sprintf(
-		"%s?db=pubmed&term=%s&retmode=json&retmax=%d&retstart=%d&sort=date",
-		pubmedSearchURL, strings.ReplaceAll(searchTerm, " ", "+"),
-		pageSize, retStart,
-	)
+	// Pick a rotating topic based on page
+	topic := searchTopics[(page-1)%len(searchTopics)]
 
-	resp, err := u.client.Get(searchURL)
-	if err != nil {
-		return nil, fmt.Errorf("pubmed search failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading search response: %w", err)
+	type sourceResult struct {
+		articles []*domain.NewWithSinglePhoto
+		total    int
+		source   string
+		err      error
 	}
 
-	var search esearchResult
-	if err := json.Unmarshal(body, &search); err != nil {
-		return nil, fmt.Errorf("parsing search response: %w", err)
+	results := make(chan sourceResult, 3)
+	var wg sync.WaitGroup
+
+	// Source 1: Europe PMC
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		articles, total, err := u.fetchEuropePMC(topic, perPage, (page-1)*perPage)
+		if err != nil {
+			log.Printf("[NEWS] Europe PMC error: %v", err)
+		}
+		results <- sourceResult{articles, total, "EuropePMC", err}
+	}()
+
+	// Source 2: WHO
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		articles, err := u.fetchWHO()
+		if err != nil {
+			log.Printf("[NEWS] WHO error: %v", err)
+		}
+		results <- sourceResult{articles, len(articles), "WHO", err}
+	}()
+
+	// Source 3: MedlinePlus
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		articles, err := u.fetchMedlinePlus()
+		if err != nil {
+			log.Printf("[NEWS] MedlinePlus error: %v", err)
+		}
+		results <- sourceResult{articles, len(articles), "MedlinePlus", err}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	var allArticles []*domain.NewWithSinglePhoto
+	totalHits := 0
+	successSources := 0
+
+	for r := range results {
+		if r.err != nil {
+			log.Printf("[NEWS] Source %s failed: %v", r.source, r.err)
+			continue
+		}
+		log.Printf("[NEWS] Source %s returned %d articles", r.source, len(r.articles))
+		allArticles = append(allArticles, r.articles...)
+		totalHits += r.total
+		successSources++
 	}
 
-	ids := search.ESearchResult.IDList
-	if len(ids) == 0 {
+	if len(allArticles) == 0 {
+		log.Printf("[NEWS] WARNING: All sources returned 0 articles for query: %s", topic)
 		return &domain.NewsList{
 			TotalCount: 0,
 			TotalPages: 0,
 			Page:       page,
-			Size:       pageSize,
+			Size:       perPage,
 			HasMore:    false,
 			News:       make([]*domain.NewWithSinglePhoto, 0),
 		}, nil
 	}
 
-	totalCount := 0
-	fmt.Sscanf(search.ESearchResult.Count, "%d", &totalCount)
-
-	articles, err := u.fetchArticles(ids)
-	if err != nil {
-		return nil, err
+	// Limit to perPage total
+	if len(allArticles) > perPage {
+		allArticles = allArticles[:perPage]
 	}
 
-	totalPages := totalCount / pageSize
-	if totalCount%pageSize > 0 {
+	totalPages := totalHits / perPage
+	if totalHits%perPage > 0 {
 		totalPages++
 	}
 	if totalPages > 100 {
@@ -136,95 +415,40 @@ func (u *newsUseCase) GetAll(ctx context.Context, query utils.PaginationQuery) (
 	}
 
 	return &domain.NewsList{
-		TotalCount: totalCount,
+		TotalCount: totalHits,
 		TotalPages: totalPages,
 		Page:       page,
-		Size:       pageSize,
+		Size:       perPage,
 		HasMore:    page < totalPages,
-		News:       articles,
+		News:       allArticles,
 	}, nil
 }
 
 func (u *newsUseCase) GetOneById(ctx context.Context, id string) (*domain.NewWithSinglePhoto, error) {
-	articles, err := u.fetchArticles([]string{id})
-	if err != nil {
-		return nil, err
+	// Try Europe PMC by ID
+	articles, _, err := u.fetchEuropePMC(id, 1, 0)
+	if err == nil && len(articles) > 0 {
+		return articles[0], nil
 	}
-	if len(articles) == 0 {
-		return nil, nil
-	}
-	return articles[0], nil
+	return nil, fmt.Errorf("article %s not found", id)
 }
 
-func (u *newsUseCase) fetchArticles(ids []string) ([]*domain.NewWithSinglePhoto, error) {
-	if len(ids) == 0 {
-		return nil, nil
+// ──────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────
+
+func stripHTMLTags(s string) string {
+	var b strings.Builder
+	inTag := false
+	for _, r := range s {
+		switch {
+		case r == '<':
+			inTag = true
+		case r == '>':
+			inTag = false
+		case !inTag:
+			b.WriteRune(r)
+		}
 	}
-
-	fetchURL := fmt.Sprintf(
-		"%s?db=pubmed&id=%s&retmode=xml",
-		pubmedFetchURL, strings.Join(ids, ","),
-	)
-
-	resp, err := u.client.Get(fetchURL)
-	if err != nil {
-		return nil, fmt.Errorf("pubmed fetch failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading fetch response: %w", err)
-	}
-
-	var articleSet pubmedArticleSet
-	if err := xml.Unmarshal(body, &articleSet); err != nil {
-		return nil, fmt.Errorf("parsing article XML: %w", err)
-	}
-
-	results := make([]*domain.NewWithSinglePhoto, 0, len(articleSet.Articles))
-	for _, a := range articleSet.Articles {
-		pmid := a.Citation.PMID.Value
-		article := a.Citation.Article
-
-		abstractText := strings.Join(article.Abstract.Texts, " ")
-		if len(abstractText) > 500 {
-			abstractText = abstractText[:497] + "..."
-		}
-
-		var authors []string
-		for _, auth := range article.AuthorList.Authors {
-			if auth.LastName != "" {
-				authors = append(authors, auth.ForeName+" "+auth.LastName)
-			}
-		}
-		owner := strings.Join(authors, ", ")
-		if len(owner) > 200 {
-			owner = owner[:197] + "..."
-		}
-		if owner == "" {
-			owner = article.Journal.Title
-		}
-
-		pubDate := article.Journal.Date
-		dateStr := pubDate.Year
-		if pubDate.Month != "" {
-			dateStr = pubDate.Month + " " + dateStr
-		}
-		if pubDate.Day != "" {
-			dateStr = pubDate.Day + " " + dateStr
-		}
-
-		results = append(results, &domain.NewWithSinglePhoto{
-			ID:        pmid,
-			Title:     article.Title,
-			Body:      abstractText,
-			Owner:     owner,
-			Photo:     "",
-			CreatedAt: dateStr,
-			Source:    pubmedArticleURL + pmid,
-		})
-	}
-
-	return results, nil
+	return strings.TrimSpace(b.String())
 }
