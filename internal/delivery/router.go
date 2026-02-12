@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"database/sql"
 	request "testDeployment/internal/delivery/http"
 	"testDeployment/internal/delivery/rest"
 	"testDeployment/internal/usecase"
@@ -18,6 +19,8 @@ func SetUp(
 	request request.CustomJSONRequester,
 	model *ai2.Dermato,
 	config config.Config,
+	db *sql.DB,
+	geminiKey string,
 ) {
 	SetUpHandlerV1(
 		g.Group("/api/v1"),
@@ -26,6 +29,8 @@ func SetUp(
 		request,
 		model,
 		config,
+		db,
+		geminiKey,
 	)
 
 }
@@ -36,6 +41,8 @@ func SetUpHandlerV1(
 	request request.CustomJSONRequester,
 	model *ai2.Dermato,
 	config config.Config,
+	db *sql.DB,
+	geminiKey string,
 ) {
 	rest.NewFrontend(
 		group,
@@ -65,6 +72,12 @@ func SetUpHandlerV1(
 		group,
 		model,
 		config,
+	)
+	rest.NewHealthController(
+		group,
+		db,
+		config.BotToken,
+		geminiKey,
 	)
 
 }

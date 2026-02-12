@@ -76,7 +76,8 @@ func (s Server) Run() error {
 	}
 	uc := usecase.New(pg, NewBot)
 	conf.Instruction = os.Getenv("INSTRUCTION")
-	ai, err := ai2.NewDermato(os.Getenv("GEMINI_API_KEY"))
+	geminiKey := os.Getenv("GEMINI_API_KEY")
+	ai, err := ai2.NewDermato(geminiKey)
 	if err != nil {
 		NewBot.SendErrorNotification(err)
 		fmt.Println(err)
@@ -84,7 +85,7 @@ func (s Server) Run() error {
 	}
 	ai.Configure(conf.Instruction, 0.7, 0.95, 40, 300)
 	conf.Ai.Prompt=os.Getenv("PROMPT")
-	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf)
+	delivery.SetUp(r, uc, NewBot, *jsonRequester, ai, *conf, pg, geminiKey)
 	conf.Port = os.Getenv("PORT")
 	if conf.Port == "" {
 		conf.Port = "8080"
