@@ -69,7 +69,7 @@ type Bot interface {
 	StartCommandListener()
 	SetDependencies(db *sql.DB, geminiKey string, port string)
 	IncrementRequests()
-	IncrementErrors()
+	RecordHTTPError(statusCode int, method, path string)
 }
 
 // ──────────────────────────────────────────────
@@ -100,10 +100,18 @@ func (b *bot) IncrementRequests() {
 	b.reqCount++
 }
 
-func (b *bot) IncrementErrors() {
+// RecordHTTPError records an HTTP error response with details for the /errors command
+func (b *bot) RecordHTTPError(statusCode int, method, path string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.errCount++
+	if len(b.lastErrs) >= maxRecentErrors {
+		b.lastErrs = b.lastErrs[1:]
+	}
+	b.lastErrs = append(b.lastErrs, errorEntry{
+		Time:    time.Now(),
+		Message: fmt.Sprintf("HTTP %d — %s %s", statusCode, method, path),
+	})
 }
 
 // ──────────────────────────────────────────────
@@ -115,8 +123,8 @@ func (b *bot) SendErrorNotification(err error) {
 		return
 	}
 
+	// Record in lastErrs for /errors command (errCount is tracked by ginLogger)
 	b.mu.Lock()
-	b.errCount++
 	if len(b.lastErrs) >= maxRecentErrors {
 		b.lastErrs = b.lastErrs[1:]
 	}

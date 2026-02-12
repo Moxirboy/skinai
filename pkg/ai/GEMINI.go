@@ -52,7 +52,7 @@ func (d *Dermato) GenerateResponse(ctx context.Context, req string) (string, err
 	return text, nil
 }
 
-func (d *Dermato) GenerateImageResponse(ctx context.Context, imageData []byte, prompt string) (string, error) {
+func (d *Dermato) GenerateImageResponse(ctx context.Context, imageData []byte, mimeType, prompt string) (string, error) {
 	if d.model == nil {
 		return "", fmt.Errorf("model not configured. Call Configure() first")
 	}
@@ -60,11 +60,12 @@ func (d *Dermato) GenerateImageResponse(ctx context.Context, imageData []byte, p
 		return "", fmt.Errorf("no image data provided")
 	}
 
-	ct := http.DetectContentType(imageData) // "image/jpeg"
-parts := strings.Split(ct, "/")
-format := parts[len(parts)-1]           // "jpeg"
+	// Use the provided MIME type directly (from multipart header or fallback detection)
+	if mimeType == "" || mimeType == "application/octet-stream" {
+		mimeType = http.DetectContentType(imageData)
+	}
 
-imagePart := genai.ImageData(format, imageData)
+	imagePart := genai.Blob{MIMEType: mimeType, Data: imageData}
 
 	resp, err := d.model.GenerateContent(ctx, imagePart, genai.Text(prompt))
 	if err != nil {

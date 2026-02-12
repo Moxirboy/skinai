@@ -28,9 +28,6 @@ func NewChat(
 		config: config,
 	}
 	r := gin.Group("/chat")
-	// Apply auth detection + rate limiting for guests
-	r.Use(middleware.OptionalAuth())
-	r.Use(middleware.AIRateLimit())
 	r.POST("/generate", h.SendMessage)
 	r.POST("/upload", h.Upload)
 }
@@ -124,15 +121,15 @@ func (c *chat) Upload(ctx *gin.Context) {
 		return
 	}
 
-	
+	// Get MIME type from multipart header (more reliable than Go's DetectContentType)
+	mimeType := files[0].Header.Get("Content-Type")
+
 	prompt := ctx.PostForm("prompt")
 	if prompt == "" {
 		prompt = c.config.Ai.Prompt
 	}
 
-
-
-	res, err := c.model.GenerateImageResponse(ctx.Request.Context(), fileBytes, prompt)
+	res, err := c.model.GenerateImageResponse(ctx.Request.Context(), fileBytes, mimeType, prompt)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

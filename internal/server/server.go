@@ -112,7 +112,7 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 		// Track request and error counts for /stats command
 		b.IncrementRequests()
 		if statusCode >= 400 {
-			b.IncrementErrors()
+			b.RecordHTTPError(statusCode, c.Request.Method, c.Request.URL.Path)
 		}
 
 		// Skip logging health check pings and swagger to reduce noise
