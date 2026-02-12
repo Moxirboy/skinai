@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -118,22 +120,39 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 			return
 		}
 
-		// Collect client info
+		// ── Real client IP (proxy-aware) ──
 		clientIP := c.ClientIP()
+		if realIP := c.GetHeader("X-Real-IP"); realIP != "" {
+			clientIP = realIP
+		} else if xff := c.GetHeader("X-Forwarded-For"); xff != "" {
+			parts := strings.SplitN(xff, ",", 2)
+			clientIP = strings.TrimSpace(parts[0])
+		} else if cfIP := c.GetHeader("CF-Connecting-IP"); cfIP != "" {
+			clientIP = cfIP
+		}
+
+		// ── Parse browser & OS from User-Agent ──
 		userAgent := c.Request.UserAgent()
+		browserName, osName := parseUserAgent(userAgent)
+
+		// ── Additional request info ──
 		referer := c.Request.Referer()
 		method := c.Request.Method
 		contentType := c.ContentType()
 		queryStr := c.Request.URL.RawQuery
+		acceptLang := c.GetHeader("Accept-Language")
+		origin := c.GetHeader("Origin")
+		reqSize := c.Request.ContentLength
+		respSize := c.Writer.Size()
 
-		// Check if user is registered via session
+		// ── User registration status via session ──
 		userInfo := "👤 Guest"
 		session := sessions.Default(c)
 		if userID := session.Get("userId"); userID != nil {
 			userInfo = fmt.Sprintf("👤 Registered (ID: %v)", userID)
 		}
 
-		// Build status emoji
+		// ── Status emoji ──
 		statusEmoji := "🟢"
 		if statusCode >= 400 && statusCode < 500 {
 			statusEmoji = "🟡"
@@ -141,38 +160,151 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 			statusEmoji = "🔴"
 		}
 
-		// Format log message
-		logMessage := fmt.Sprintf(
+		// ── Build the log message ──
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf(
 			"%s *%s* `%s`\n"+
-				"Status: `%d` | Duration: `%v`\n"+
-				"🌐 IP: `%s`\n"+
-				"%s\n"+
-				"📱 UA: `%s`",
+				"├ Status: `%d` | Duration: `%v`\n"+
+				"├ 🌐 IP: `%s`\n"+
+				"├ %s\n"+
+				"├ 🖥 Browser: `%s`\n"+
+				"├ 💻 OS: `%s`",
 			statusEmoji, method, path,
 			statusCode, duration.Round(time.Millisecond),
 			clientIP,
 			userInfo,
-			truncateUA(userAgent, 120),
-		)
+			browserName,
+			osName,
+		))
 
-		// Append optional fields only if present
-		if queryStr != "" {
-			logMessage += fmt.Sprintf("\n🔎 Query: `%s`", queryStr)
+		// Language
+		if acceptLang != "" {
+			lang := parseLanguage(acceptLang)
+			sb.WriteString(fmt.Sprintf("\n├ 🌍 Language: `%s`", lang))
 		}
+
+		// Origin
+		if origin != "" {
+			sb.WriteString(fmt.Sprintf("\n├ 🔗 Origin: `%s`", origin))
+		}
+
+		// Referer
 		if referer != "" {
-			logMessage += fmt.Sprintf("\n↩️ Referer: `%s`", referer)
-		}
-		if contentType != "" && method != "GET" {
-			logMessage += fmt.Sprintf("\n📄 Content-Type: `%s`", contentType)
+			sb.WriteString(fmt.Sprintf("\n├ ↩️ Referer: `%s`", referer))
 		}
 
-		b.SendNotification(logMessage)
+		// Query string
+		if queryStr != "" {
+			sb.WriteString(fmt.Sprintf("\n├ 🔎 Query: `%s`", queryStr))
+		}
+
+		// Content-Type & body sizes
+		if contentType != "" && method != "GET" {
+			sb.WriteString(fmt.Sprintf("\n├ 📄 Content-Type: `%s`", contentType))
+		}
+		if reqSize > 0 {
+			sb.WriteString(fmt.Sprintf("\n├ 📤 Request Size: `%s`", formatBytes(reqSize)))
+		}
+		if respSize > 0 {
+			sb.WriteString(fmt.Sprintf("\n├ 📥 Response Size: `%s`", formatBytes(int64(respSize))))
+		}
+
+		sb.WriteString(fmt.Sprintf("\n└ 🕐 `%s`", time.Now().Format("2006/01/02 15:04:05")))
+
+		b.SendRequestLog(sb.String())
 	}
 }
 
-func truncateUA(ua string, maxLen int) string {
-	if len(ua) <= maxLen {
-		return ua
+// parseUserAgent extracts browser and OS from the User-Agent string
+func parseUserAgent(ua string) (browser string, os string) {
+	browser = "Unknown"
+	os = "Unknown"
+	ual := strings.ToLower(ua)
+
+	// ── OS detection ──
+	switch {
+	case strings.Contains(ual, "iphone"):
+		os = "iOS (iPhone)"
+	case strings.Contains(ual, "ipad"):
+		os = "iOS (iPad)"
+	case strings.Contains(ual, "android"):
+		os = "Android"
+	case strings.Contains(ual, "windows nt 10"):
+		os = "Windows 10/11"
+	case strings.Contains(ual, "windows nt"):
+		os = "Windows"
+	case strings.Contains(ual, "macintosh") || strings.Contains(ual, "mac os x"):
+		os = "macOS"
+	case strings.Contains(ual, "linux"):
+		os = "Linux"
+	case strings.Contains(ual, "cros"):
+		os = "ChromeOS"
+	case strings.Contains(ual, "bot") || strings.Contains(ual, "crawler") || strings.Contains(ual, "spider"):
+		os = "Bot/Crawler"
 	}
-	return ua[:maxLen-3] + "..."
+
+	// ── Browser detection (order matters) ──
+	switch {
+	case strings.Contains(ual, "edg/"):
+		browser = "Edge"
+	case strings.Contains(ual, "opr/") || strings.Contains(ual, "opera"):
+		browser = "Opera"
+	case strings.Contains(ual, "brave"):
+		browser = "Brave"
+	case strings.Contains(ual, "vivaldi"):
+		browser = "Vivaldi"
+	case strings.Contains(ual, "yabrowser"):
+		browser = "Yandex"
+	case strings.Contains(ual, "samsungbrowser"):
+		browser = "Samsung Browser"
+	case strings.Contains(ual, "ucbrowser"):
+		browser = "UC Browser"
+	case strings.Contains(ual, "chrome") && !strings.Contains(ual, "chromium"):
+		browser = "Chrome"
+	case strings.Contains(ual, "firefox"):
+		browser = "Firefox"
+	case strings.Contains(ual, "safari") && !strings.Contains(ual, "chrome"):
+		browser = "Safari"
+	case strings.Contains(ual, "msie") || strings.Contains(ual, "trident"):
+		browser = "Internet Explorer"
+	case strings.Contains(ual, "postman"):
+		browser = "Postman"
+	case strings.Contains(ual, "curl"):
+		browser = "cURL"
+	case strings.Contains(ual, "python"):
+		browser = "Python"
+	case strings.Contains(ual, "go-http-client"):
+		browser = "Go HTTP Client"
+	}
+
+	if ua == "" {
+		return "No UA", "Unknown"
+	}
+	return
+}
+
+// parseLanguage extracts the primary language from Accept-Language header
+func parseLanguage(al string) string {
+	// Accept-Language: en-US,en;q=0.9,uz;q=0.8  →  "en-US"
+	parts := strings.SplitN(al, ",", 2)
+	lang := strings.TrimSpace(parts[0])
+	if idx := strings.Index(lang, ";"); idx > 0 {
+		lang = lang[:idx]
+	}
+	if len(lang) > 10 {
+		lang = lang[:10]
+	}
+	return lang
+}
+
+// formatBytes converts bytes to human-readable string
+func formatBytes(b int64) string {
+	switch {
+	case b >= 1024*1024:
+		return fmt.Sprintf("%.1f MB", float64(b)/1024/1024)
+	case b >= 1024:
+		return fmt.Sprintf("%.1f KB", float64(b)/1024)
+	default:
+		return fmt.Sprintf("%d B", b)
+	}
 }

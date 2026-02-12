@@ -49,6 +49,7 @@ type errorEntry struct {
 type Bot interface {
 	SendErrorNotification(err error)
 	SendNotification(mess string)
+	SendRequestLog(mess string)
 	StartCommandListener()
 	SetDependencies(db *sql.DB, geminiKey string, port string)
 	IncrementRequests()
@@ -121,6 +122,17 @@ func (b *bot) SendNotification(message string) {
 	_, err := b.Send(msg)
 	if err != nil {
 		log.Printf("Error sending notification: %v", err)
+	}
+}
+
+// SendRequestLog sends a request log to the monitoring chat without the caller file:line prefix
+func (b *bot) SendRequestLog(message string) {
+	msg := tgbotapi.NewMessage(chatID, message)
+	msg.ParseMode = "Markdown"
+	msg.DisableWebPagePreview = true
+	_, err := b.Send(msg)
+	if err != nil {
+		log.Printf("Error sending request log: %v", err)
 	}
 }
 
