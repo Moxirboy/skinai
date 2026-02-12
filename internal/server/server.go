@@ -112,13 +112,67 @@ func ginLogger(b Bot.Bot) gin.HandlerFunc {
 			b.IncrementErrors()
 		}
 
-		// Skip logging health check pings to reduce noise
-		if c.Request.URL.Path == "/api/v1/health" {
+		// Skip logging health check pings and swagger to reduce noise
+		path := c.Request.URL.Path
+		if path == "/api/v1/health" || len(path) >= 8 && path[:8] == "/swagger" {
 			return
 		}
 
-		logMessage := fmt.Sprintf("Method: %s, Path: %s, Status: %d, Duration: %v",
-			c.Request.Method, c.Request.URL.Path, statusCode, duration)
+		// Collect client info
+		clientIP := c.ClientIP()
+		userAgent := c.Request.UserAgent()
+		referer := c.Request.Referer()
+		method := c.Request.Method
+		contentType := c.ContentType()
+		queryStr := c.Request.URL.RawQuery
+
+		// Check if user is registered via session
+		userInfo := "👤 Guest"
+		session := sessions.Default(c)
+		if userID := session.Get("userId"); userID != nil {
+			userInfo = fmt.Sprintf("👤 Registered (ID: %v)", userID)
+		}
+
+		// Build status emoji
+		statusEmoji := "🟢"
+		if statusCode >= 400 && statusCode < 500 {
+			statusEmoji = "🟡"
+		} else if statusCode >= 500 {
+			statusEmoji = "🔴"
+		}
+
+		// Format log message
+		logMessage := fmt.Sprintf(
+			"%s *%s* `%s`\n"+
+				"Status: `%d` | Duration: `%v`\n"+
+				"🌐 IP: `%s`\n"+
+				"%s\n"+
+				"📱 UA: `%s`",
+			statusEmoji, method, path,
+			statusCode, duration.Round(time.Millisecond),
+			clientIP,
+			userInfo,
+			truncateUA(userAgent, 120),
+		)
+
+		// Append optional fields only if present
+		if queryStr != "" {
+			logMessage += fmt.Sprintf("\n🔎 Query: `%s`", queryStr)
+		}
+		if referer != "" {
+			logMessage += fmt.Sprintf("\n↩️ Referer: `%s`", referer)
+		}
+		if contentType != "" && method != "GET" {
+			logMessage += fmt.Sprintf("\n📄 Content-Type: `%s`", contentType)
+		}
+
 		b.SendNotification(logMessage)
 	}
+}
+
+func truncateUA(ua string, maxLen int) string {
+	if len(ua) <= maxLen {
+		return ua
+	}
+	return ua[:maxLen-3] + "..."
 }
