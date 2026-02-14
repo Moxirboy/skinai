@@ -1,9 +1,100 @@
 basePath: /api/v1
 definitions:
+  domain.DoctorByType:
+    properties:
+      doctor:
+        items:
+          $ref: '#/definitions/domain.DoctorWithType'
+        type: array
+      id:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.DoctorWithType:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      phone_number:
+        type: string
+      photo:
+        type: string
+      rating:
+        type: number
+      type:
+        type: string
+      work_hours:
+        type: string
+      workplace:
+        type: string
+    type: object
+  domain.Message:
+    properties:
+      id:
+        type: integer
+      is_AI:
+        type: boolean
+      message:
+        type: string
+      sent_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   domain.NewMessage:
     properties:
       message:
         type: string
+    type: object
+  domain.NewWithSinglePhoto:
+    properties:
+      body:
+        type: string
+      category:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      owner:
+        type: string
+      photo:
+        type: string
+      source:
+        type: string
+      title:
+        type: string
+    type: object
+  domain.NewsList:
+    properties:
+      has_more:
+        type: boolean
+      news:
+        items:
+          $ref: '#/definitions/domain.NewWithSinglePhoto'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        description: seconds
+        type: integer
+      role:
+        type: string
+      user_id:
+        type: integer
     type: object
   dto.Choices:
     properties:
@@ -38,39 +129,30 @@ definitions:
       question:
         type: string
     type: object
-  dto.Item:
+  dto.GuestResponse:
     properties:
-      activity_code:
+      access_token:
         type: string
-      activity_title:
-        type: string
-      anons:
-        type: string
-      anons_image:
-        type: string
-      category_code:
-        type: string
-      category_id:
+      ai_limit:
         type: integer
-      category_title:
-        type: string
-      date:
-        type: string
-      id:
+      expires_in:
         type: integer
-      title:
+      message:
         type: string
-      url_to_web:
+      role:
         type: string
-      views:
+      upload_limit:
         type: integer
     type: object
-  dto.Response:
+  dto.LoginRequest:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.Item'
-        type: array
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
     type: object
   dto.Score:
     properties:
@@ -78,6 +160,22 @@ definitions:
         type: integer
       score:
         type: integer
+    type: object
+  dto.SignupRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 30
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
     type: object
   dto.User:
     properties:
@@ -119,7 +217,27 @@ definitions:
         example: 0
         type: integer
     type: object
-host: skinai.up.railway.app
+  rest.healthResponse:
+    properties:
+      services:
+        additionalProperties:
+          $ref: '#/definitions/rest.serviceStatus'
+        type: object
+      status:
+        type: string
+      uptime:
+        type: string
+    type: object
+  rest.serviceStatus:
+    properties:
+      error:
+        type: string
+      latency:
+        type: string
+      status:
+        type: string
+    type: object
+host: easy-wallaby-strangely.ngrok-free.app
 info:
   contact:
     email: support@swagger.io
@@ -133,6 +251,21 @@ info:
   title: Skin Ai Swagger
   version: "1.0"
 paths:
+  /auth/status:
+    get:
+      description: Returns the current user auth status, role, and remaining quotas
+        for guests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check authentication status
+      tags:
+      - auth
   /chat/generate:
     post:
       description: send message to ai
@@ -217,37 +350,94 @@ paths:
       - users
   /dashboard/middle/buy_premium:
     get:
-      description: buy premium user
+      description: Upgrade the current user to premium
       produces:
       - application/json
       responses:
         "200":
           description: OK
-      summary: buy premium
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Buy premium
       tags:
       - users
-  /dashboard/middle/get-point:
+  /dashboard/middle/deleteAccount:
     get:
-      description: get user point
+      description: Delete the current user account and clear session
       produces:
       - application/json
       responses:
         "200":
           description: OK
-      summary: get user point
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete user account
+      tags:
+      - users
+  /dashboard/middle/get-all-messages:
+    get:
+      description: Returns all chat messages for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Message'
+            type: array
+      summary: Get all messages
+      tags:
+      - message
+  /dashboard/middle/get-point:
+    get:
+      description: Get the current user point balance
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get user points
       tags:
       - users
   /dashboard/middle/get_premium:
     get:
-      description: get premium user
+      description: Check if the current user has premium
       produces:
       - application/json
       responses:
         "200":
           description: OK
-      summary: get premium
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get premium status
       tags:
       - users
+  /dashboard/middle/logout:
+    get:
+      description: Clear session and logout user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logout user
+      tags:
+      - auth
   /dashboard/middle/showUserInfo:
     get:
       consumes:
@@ -298,6 +488,111 @@ paths:
       summary: User email
       tags:
       - users
+  /dashboard/middle/updateuserinfo:
+    post:
+      consumes:
+      - application/json
+      description: Update user information fields
+      parameters:
+      - description: Updated user info
+        in: body
+        name: user_info
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: id
+          schema:
+            type: string
+        "400":
+          description: internal error
+          schema:
+            type: string
+        "406":
+          description: Not Acceptable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update user info
+      tags:
+      - users
+  /doc/getalldoctors:
+    get:
+      description: Returns all doctors grouped by type
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.DoctorByType'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all doctors
+      tags:
+      - doctors
+  /doc/getonedoctor:
+    get:
+      description: Returns doctor details filtered by name
+      parameters:
+      - description: Doctor name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.DoctorWithType'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get doctor by name
+      tags:
+      - doctors
+  /doctor/create:
+    post:
+      consumes:
+      - application/json
+      description: Register a new doctor user
+      parameters:
+      - description: Doctor user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "303":
+          description: See Other
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a doctor
+      tags:
+      - doctors
   /fact/answer-question:
     post:
       consumes:
@@ -464,37 +759,84 @@ paths:
       summary: Upload an image
       tags:
       - image
-  /login:
+  /guest:
     post:
-      consumes:
-      - application/json
-      description: Login user with the input username,password
-      parameters:
-      - description: User
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.User'
+      description: Get a temporary guest token with limited AI access (5 text + 3
+        image per day). No registration needed.
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.User'
+            $ref: '#/definitions/dto.GuestResponse'
+      summary: Continue as guest
+      tags:
+      - auth
+  /health:
+    get:
+      description: Returns the health status of all services (Postgres, Telegram Bot,
+        Gemini AI)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.healthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/rest.healthResponse'
+      summary: Health check
+      tags:
+      - health
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with username and password. Returns JWT access token.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
       summary: Login user
       tags:
-      - users
+      - auth
   /news/getall:
     get:
-      description: Get all news with pagination
+      description: 'Get medical news from PubMed & Europe PMC — topics: dermatology,
+        AI in medicine, skincare, digital health, clinical trials'
       operationId: get-all-news
       parameters:
-      - description: Page number
+      - description: Page number (default 1)
         in: query
         name: page
-        required: true
         type: integer
       produces:
       - application/json
@@ -502,30 +844,74 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.Response'
-      summary: Get all news
+            $ref: '#/definitions/domain.NewsList'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all medical news
+      tags:
+      - news
+  /news/getone:
+    get:
+      description: Get a single medical article by its ID (e.g. pubmed-12345678 or
+        epmc-12345678)
+      operationId: get-one-news
+      parameters:
+      - description: Article ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.NewWithSinglePhoto'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get one medical news article
       tags:
       - news
   /signup:
     post:
       consumes:
       - application/json
-      description: signup user with the input email,password
+      description: Create a new account with email, username and password (min 6 chars).
+        Returns JWT access token.
       parameters:
-      - description: User
+      - description: Signup credentials
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/dto.User'
+          $ref: '#/definitions/dto.SignupRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.User'
-      summary: Signup user
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
       tags:
-      - users
+      - auth
+schemes:
+- https
 swagger: "2.0"

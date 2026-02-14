@@ -18,7 +18,8 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host skinai.up.railway.app
+// @host easy-wallaby-strangely.ngrok-free.app
+// @schemes https
 // @BasePath /api/v1
 
 
